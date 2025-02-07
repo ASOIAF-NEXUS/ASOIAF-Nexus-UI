@@ -1,0 +1,47 @@
+.filter-pill--red {
+    background-color: lightcoral;
+}
+
+.filter-pill--blue {
+    background-color: dodgerblue;
+}
+
+.filter-pill--gray {
+    background-color: lightgray;
+}
+
+.m-1 {
+    margin: 1em;
+}
+.mx-0 {
+    margin-left: 0;
+    margin-right: 0;
+}
+.mx-1 {
+    margin-left: 1em;
+    margin-right: 1em;
+}
+.filter-search__input {
+    width: 35%;
+}
+.filter-search__input .mantine-Input-input {
+    border-radius: 0 !important;
+}
+
+.filter-search-group {
+    width: auto;
+}
+
+.filter-list {
+    display: block;
+    max-height: 100%;
+    width: 60%;
+    overflow-y: scroll;
+    scrollbar-color: gray white;
+}
+
+.filter-wrapper {
+    display: flex;
+    flex-flow: column nowrap;
+    height: 100%;
+}

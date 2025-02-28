@@ -18,13 +18,14 @@ import {useDisclosure} from "@mantine/hooks";
 
 interface ListRowProps {
     item: SongData
+    addUnit: (x: SongData) => void,
 }
 
-function ListRow({item}: ListRowProps) {
+function ListRow({item, addUnit}: ListRowProps) {
     return <tr>
-        <td>{item.id}</td>
         <td>{item._fullName}</td>
         <td>{item._prop}</td>
+        <td><Button onClick={()=> {addUnit(item)}}>Add</Button></td>
     </tr>
 }
 
@@ -109,11 +110,12 @@ function FilterMiniPill({isRenderPill, ...props}: FilterMiniPillProps) {
 interface FilterBoxProps {
     data: SongData[],
     dataFilter: DataFilter,
+    addUnit: (x: SongData) => void,
 }
 
 type T_FilterState = Dictionary<number>[]
 
-function FilterBox({data, dataFilter}: FilterBoxProps) {
+function FilterBox({data, dataFilter, addUnit}: FilterBoxProps) {
 
     const [filterState, setFilterState] = useState(dataFilter.filters.map(f => f.defaultFilterState));
     const [searchText, setSearchText] = useState("");
@@ -157,7 +159,7 @@ function FilterBox({data, dataFilter}: FilterBoxProps) {
             doSetNextState={doSetNextState}
         ></FilterModal>
 
-        <ButtonGroup className="m-1 filter-search-group">
+        <ButtonGroup className="filter-search-group">
             <Button
                 variant="default"
                 onClick={doOpenFilterModal}
@@ -177,7 +179,7 @@ function FilterBox({data, dataFilter}: FilterBoxProps) {
                 onClick={() => setFilterState(dataFilter.filters.map(f => f.defaultFilterState))}
             >Reset</Button>
         </ButtonGroup>
-        <PillGroup className="mx-1">
+        <PillGroup className="">
             {dataFilter.filters.map((filter, fIx) => filter.getMiniPillProps(filterState[fIx])
                 .map((props, iIx) => {
                     return <FilterMiniPill
@@ -187,14 +189,14 @@ function FilterBox({data, dataFilter}: FilterBoxProps) {
                         onClick={() => onClickMiniPill(fIx, props.item)}/>
                 }))}
         </PillGroup>
-        <table className="m-1 filter-list">
+        <table className="">
             <thead>
             <tr>
                 <td><b>{filteredSearchedData.length} Items</b></td>
             </tr>
             </thead>
             <tbody>
-            {filteredSearchedData.map((it, ix) => <ListRow key={ix} item={it}/>)}
+            {filteredSearchedData.map((it, ix) => <ListRow key={ix} item={it} addUnit={addUnit}/>)}
             </tbody>
         </table>
     </>

@@ -99,23 +99,19 @@ export interface SongData {
     _fullName: string
 }
 
+type FactionData = {
+    units: SongData[]
+    ncus: SongData[]
+    attachments: SongData[]
+    tactics: SongData[]
+    specials: SongData[]
+}
+
 export class DataLoader {
-    _LOADING: Dictionary<Promise<Response>> = {};
-    _LOADED: Dictionary<Dictionary<SongData[]>> = {};
 
-    async pLoad(url: string) {
-        if (this._LOADED[url]) return this._LOADED[url];
-        if (this._LOADING[url] === undefined) this._LOADING[url] = fetch(url);
-        try {
-            const response = await this._LOADING[url];
-            this._LOADED[url] = await response.json();
-        } catch (err) {
-            delete this._LOADING[url];
-            this._LOADED[url] = {};
-            console.log(err);
-        }
-
-        return this._LOADED[url];
+    async pLoad(url: string): Promise<FactionData> {
+        const response = await fetch(url)
+        return response.json()
     }
 
     async pLoadJson() {

@@ -3,3 +3,10 @@
     overflow: hidden;
     padding: 3px;
 }
+
+.list-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+
+}

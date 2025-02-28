@@ -10,10 +10,11 @@ import {
     ScrollArea,
     Divider,
 } from "@mantine/core";
-import {Dictionary, SongData} from "../utils.ts"
-import {DataFilter, Filter} from "../filter.tsx"
-import {useEffect, useMemo, useState} from "react";
+import {FilterData, Filter} from "../filter.tsx"
+import {useContext, useMemo, useState} from "react";
 import {useDisclosure} from "@mantine/hooks";
+import FilterContext from "../FilterContext.ts";
+import {SongData} from "../../songTypes.ts";
 
 
 interface ListRowProps {
@@ -27,6 +28,7 @@ function ListRow({item}: ListRowProps) {
         <td>{item._prop}</td>
     </tr>
 }
+
 
 export interface FilterPillProps {
     variant: ButtonVariant
@@ -44,53 +46,6 @@ function FilterPill({...props}: FilterPillProps) {
     ></Button>
 }
 
-
-interface FilterModalProps {
-    isOpen: boolean
-    onClose: (fs: T_FilterState) => void
-    dataFilter: DataFilter
-    filterState: T_FilterState
-    doSetNextState: (ixFilter: number, item: string, nextState: number) => void
-}
-
-function FilterModal({isOpen, onClose, dataFilter, filterState, doSetNextState}: FilterModalProps) {
-
-    const onClickPill = (filter: Filter, fIx: number, item: string) => {
-        const nextState = filter.nextState(filterState[fIx][item]);
-        doSetNextState(fIx, item, nextState);
-    }
-
-    return <Modal
-        opened={isOpen}
-        onClose={() => onClose(filterState)}
-        title="Filter"
-        centered size="70%"
-        scrollAreaComponent={ScrollArea.Autosize}
-        overlayProps={{blur: 1}}
-    >
-        {dataFilter.filters.map((filter, fIx) =>
-            <div className="m-1 mx-0" key={fIx}>
-                <p>{filter.header}</p>
-                <PillGroup>
-
-                    {filter.getPillProps(filterState[fIx])
-                        .map((props, iIx) => {
-                            return <FilterPill
-                                {...props}
-                                key={`${fIx}-${iIx}`}
-                                onClick={() => onClickPill(filter, fIx, props.item)}
-                            />
-                        })
-                    }
-
-                </PillGroup>
-                <Divider className="m-1 mx-0"></Divider>
-            </div>
-        )}
-    </Modal>
-}
-
-
 export interface FilterMiniPillProps {
     isRenderPill: boolean
     className: string
@@ -106,55 +61,85 @@ function FilterMiniPill({isRenderPill, ...props}: FilterMiniPillProps) {
 }
 
 
-interface FilterBoxProps {
-    data: SongData[],
-    dataFilter: DataFilter,
+interface FilterModalProps {
+    isOpen: boolean
+    onClose: () => void
+    dataFilter: FilterData
 }
 
-type T_FilterState = Dictionary<number>[]
+function FilterModal({isOpen, onClose, dataFilter}: FilterModalProps) {
+    const {filterState, setFilterState} = useContext(FilterContext);
 
-function FilterBox({data, dataFilter}: FilterBoxProps) {
-
-    const [filterState, setFilterState] = useState(dataFilter.filters.map(f => f.defaultFilterState));
-    const [searchText, setSearchText] = useState("");
-
-    const [isFilterModalOpen, {open: doOpenFilterModal, close: doCloseFilterModal}] = useDisclosure(false);
-
-    useEffect(() => {
-        data.forEach(item => dataFilter.addToFilters(item));
-        setFilterState(dataFilter.filters.map(f => f.defaultFilterState));
-    }, [data, dataFilter]);
-
-    const filteredData = useMemo(() => {
-        return data.filter(item => dataFilter.doFilterItem(item, filterState));
-    }, [dataFilter, data, filterState]);
-    const filteredSearchedData = useMemo(() => {
-        if (searchText === "") return filteredData;
-        return filteredData.filter(item => item._fullName.toLowerCase().includes(searchText));
-    }, [filteredData, searchText]);
-
-    const doSetNextState = (filterIx: number, item: string, nextState: number) => {
+    const onClickPill = (filter: Filter, filterItem: string) => {
         setFilterState(prevState => {
-            const newState = prevState.map(s => Object.assign({}, s));
-            newState[filterIx][item] = nextState;
+            const newState = {...prevState};
+            newState[filter.getFilterStateHash(filterItem)] = filter.cycleState(filterState[filter.getFilterStateHash(filterItem)]);
             return newState;
         });
     }
 
-    const onClickMiniPill = (fIx: number, item: string) => {
-        doSetNextState(fIx, item, 0);
+    return <Modal
+        opened={isOpen}
+        onClose={onClose}
+        title="Filter"
+        centered size="70%"
+        scrollAreaComponent={ScrollArea.Autosize}
+        overlayProps={{blur: 1}}
+    >
+        {dataFilter.filters.map((filter, fIx) =>
+            <div className="m-1 mx-0" key={fIx}>
+                <p>{filter.header}</p>
+                <PillGroup>
+
+                    {filter.getPillProps(filterState)
+                        .map((props, iIx) => {
+                            return <FilterPill
+                                {...props}
+                                key={`${fIx}-${iIx}`}
+                                onClick={() => onClickPill(filter, props.item)}
+                            />
+                        })
+                    }
+
+                </PillGroup>
+                <Divider className="m-1 mx-0"></Divider>
+            </div>
+        )}
+    </Modal>
+}
+
+
+interface FilterBoxProps {
+    data: SongData[],
+    filterData: FilterData,
+}
+
+function FilterBox({data, filterData}: FilterBoxProps) {
+    const {filterState, setFilterState} = useContext(FilterContext);
+    const [searchText, setSearchText] = useState("");
+    const [isFilterModalOpen, {open: doOpenFilterModal, close: doCloseFilterModal}] = useDisclosure(false);
+
+    const doSetNextFilterState = (filter: Filter, filterItem: string, nextState: number) => {
+        setFilterState(prevState => {
+            const newState = {...prevState};
+            newState[filter.getFilterStateHash(filterItem)] = nextState;
+            return newState;
+        });
     }
+
+    const filteredData = useMemo(() => {
+        return data.filter(ent => filterData.doFilterEntity(ent, filterState));
+    }, [filterData, data, filterState]);
+    const filteredSearchedData = useMemo(() => {
+        if (searchText === "") return filteredData;
+        return filteredData.filter(item => item._fullName.toLowerCase().includes(searchText.toLowerCase()));
+    }, [filteredData, searchText]);
 
     return <>
         <FilterModal
             isOpen={isFilterModalOpen}
-            onClose={(finalFilterState: T_FilterState) => {
-                setFilterState(finalFilterState);
-                doCloseFilterModal();
-            }}
-            dataFilter={dataFilter}
-            filterState={filterState}
-            doSetNextState={doSetNextState}
+            onClose={doCloseFilterModal}
+            dataFilter={filterData}
         ></FilterModal>
 
         <ButtonGroup className="m-1 filter-search-group">
@@ -167,24 +152,24 @@ function FilterBox({data, dataFilter}: FilterBoxProps) {
                 className="filter-search__input"
                 placeholder="Search..."
                 value={searchText}
-                onChange={(event) => setSearchText(event.target.value.toLowerCase())}
+                onChange={(event) => setSearchText(event.target.value)}
                 rightSection={searchText !== "" ? <Input.ClearButton onClick={() => setSearchText("")}/> : null}
                 rightSectionPointerEvents="auto"
             ></TextInput>
 
             <Button
                 variant="default"
-                onClick={() => setFilterState(dataFilter.filters.map(f => f.defaultFilterState))}
+                onClick={() => setFilterState(filterData.defaultFilterStates)}
             >Reset</Button>
         </ButtonGroup>
         <PillGroup className="mx-1">
-            {dataFilter.filters.map((filter, fIx) => filter.getMiniPillProps(filterState[fIx])
+            {filterData.filters.map((filter, fIx) => filter.getMiniPillProps(filterState)
                 .map((props, iIx) => {
                     return <FilterMiniPill
                         {...props}
                         size="xs"
                         key={`${fIx}-${iIx}`}
-                        onClick={() => onClickMiniPill(fIx, props.item)}/>
+                        onClick={() => doSetNextFilterState(filter, props.item, 0)}/>
                 }))}
         </PillGroup>
         <table className="m-1 filter-list">

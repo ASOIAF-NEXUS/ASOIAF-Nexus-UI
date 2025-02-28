@@ -1,12 +1,12 @@
+"use server"
 import '@mantine/core/styles.css';
 import "./App.css";
-import ListBuilder from "./components/ListBuilder.tsx";
+import ListBuilder from "./listbuilder/components/ListBuilder.tsx";
 
 
 function App() {
-    return <>
-        <ListBuilder></ListBuilder>
-    </>
+
+    return <ListBuilder></ListBuilder>
 }
 
 export default App

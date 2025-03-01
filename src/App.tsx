@@ -2,9 +2,20 @@ import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
-import { AppShell, Burger, Flex, Skeleton } from "@mantine/core";
+import {
+  AppShell,
+  Avatar,
+  Burger,
+  Button,
+  Flex,
+  Group,
+  Menu,
+  Title,
+  UnstyledButton,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-
+import { NavLink } from "@mantine/core";
+import HomePage from "./HomePage";
 // function App() {
 //   const [count, setCount] = useState(0)
 
@@ -37,33 +48,63 @@ import { useDisclosure } from "@mantine/hooks";
 // export default App
 
 function App() {
-  const [opened, { toggle }] = useDisclosure(true);
+  const [navOpened, { toggle: navToggle }] = useDisclosure(true);
+  const [navigationState, setNavigationState] = useState<
+    "home" | "list-builder"
+  >("home");
   return (
     <AppShell
-      header={{ height: "8em" }}
+      header={{ height: "4em" }}
       navbar={{
         width: 300,
         breakpoint: "sm",
-        collapsed: { mobile: !opened, desktop: !opened },
+        collapsed: { mobile: !navOpened, desktop: !navOpened },
       }}
-      padding="md"
+      padding="sm"
     >
-      <AppShell.Header px="md" py="sm">
-        <Flex justify={"flex-start"}>
-        <Burger
-          opened={opened}
-          onClick={toggle}
-        ></Burger>
+      <AppShell.Header px="lg" py="md">
+        <Group justify={"space-between"} align={"center"} gap={"md"}>
+          <Flex justify={"flex-start"}>
+            <Burger opened={navOpened} onClick={navToggle}></Burger>
           </Flex>
+          <Title>ASOIAF NEXUS</Title>
+          <Flex>
+            <Menu trigger="click-hover" openDelay={100} closeDelay={400}>
+              <Menu.Target>
+                <UnstyledButton>
+                  <Avatar name="User Name" />
+                </UnstyledButton>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item onClick={() => console.log("Yo")}>Sign Up</Menu.Item>
+                <Menu.Item onClick={() => console.log("Profile")}>Profile </Menu.Item>
+                  <Menu.Item
+                    onClick={() => console.log("Sign out")}
+                  >Sign Out</Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          </Flex>
+        </Group>
       </AppShell.Header>
-      <AppShell.Navbar p="md">Navbar
-        {Array(15)
-          .fill(0)
-          .map((_, index) => (
-            <Skeleton key={index} h={28} mt="sm" animate={false} />
-          ))}
-        </AppShell.Navbar>
-      <AppShell.Main>Main</AppShell.Main>
+      <AppShell.Navbar p="md">
+        Navbar
+        <NavLink
+          active={navigationState === "home"}
+          label="Home"
+          component="button"
+          onClick={() => setNavigationState("home")}
+        />
+        <NavLink
+          active={navigationState === "list-builder"}
+          label="List Builder"
+          component="button"
+          onClick={() => setNavigationState("list-builder")}
+        />
+      </AppShell.Navbar>
+      <AppShell.Main>
+        {navigationState === "home" && <HomePage />}
+        {navigationState === "list-builder" && <Title>List Builder is Under Construction</Title>}
+      </AppShell.Main>
       <AppShell.Footer>Footer</AppShell.Footer>
     </AppShell>
   );

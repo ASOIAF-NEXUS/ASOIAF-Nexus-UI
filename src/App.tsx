@@ -14,6 +14,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { NavLink } from "@mantine/core";
 import HomePage from "./HomePage";
+import Tournaments from "./Tournaments/tournaments";
 
 type NavigationState =
   | "home"
@@ -101,6 +102,7 @@ function App() {
         {navigationState === "list-builder" && (
           <Title>List Builder is Under Construction</Title>
         )}
+        {navigationState === "tournaments" && <Tournaments />}
       </AppShell.Main>
       <AppShell.Footer>Footer</AppShell.Footer>
     </AppShell>

@@ -4,8 +4,8 @@ function HomePage() {
   return (
     <Stack>
       <Paper shadow="md" radius="sm" p="xl" withBorder><Title>Home Page</Title></Paper>
-      <Paper shadow="xs" radius="md" p="xl" withBorder>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Quod soluta doloribus quaerat illum laborum cupiditate error eos maiores ratione molestiae id ea vel facilis et vitae, quas tenetur? Incidunt, inventore.</Paper>
-      <Paper shadow="xs" radius="md" p="xl" withBorder><Text>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Porro sunt nisi eligendi, harum suscipit fugit obcaecati voluptatibus velit culpa magnam asperiores eos rem quaerat, distinctio perferendis esse assumenda veritatis odio.</Text></Paper>
+      <Paper shadow="xs" radius="md" p="xl" withBorder>ASOIAF Nexus is a community-driven, open-source platform designed to enhance and expand the tools available to ASOIAF players. Our goal is to complement ASOIAF Stats while providing new functionalities that serve narrative play, alternative tournament formats, and community-driven content.</Paper>
+      <Paper shadow="xs" radius="md" p="xl" withBorder><Text>To establish an open-source, sustainable, and community-driven platform that enhances the ASOIAF gaming experience by providing tools that go beyond competitive tracking, supporting casual, narrative, and alternative formats.</Text></Paper>
       <Group justify="space-between">
         <Paper shadow="xs" radius="md" p="xl" withBorder>Did you know this project is open source?</Paper>
         <Paper shadow="xs" radius="md" p="xl" withBorder>Did you know this project is done by volonteers?</Paper>

@@ -5,6 +5,7 @@ import {
   Avatar,
   Burger,
   Button,
+  Divider,
   Grid,
   Group,
   Menu,
@@ -14,6 +15,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { NavLink } from "@mantine/core";
 import HomePage from "./HomePage";
+import AboutUs from "./AboutUs";
 
 type NavigationState =
   | "home"
@@ -21,7 +23,9 @@ type NavigationState =
   | "tournaments"
   | "profile"
   | "sign-up"
-  | "sign-in";
+  | "sign-in"
+  | "tools"
+  | "about-us";
 
 function App() {
   const [navOpened, { toggle: navToggle }] = useDisclosure(true);
@@ -41,7 +45,9 @@ function App() {
       <AppShell.Header px="lg" py="md">
         <Grid>
           <Grid.Col span={1}>
+            <Group justify="start">
             <Burger opened={navOpened} onClick={navToggle}></Burger>
+            </Group>
           </Grid.Col>
           <Grid.Col offset={4} span={2}>
             <Title>NEXUS</Title>
@@ -75,6 +81,7 @@ function App() {
           component="button"
           onClick={() => setNavigationState("home")}
         />
+        <Divider my="md" />
         <NavLink
           active={navigationState === "list-builder"}
           label="List Builder"
@@ -87,13 +94,24 @@ function App() {
           component="button"
           onClick={() => setNavigationState("tournaments")}
         />
+        <NavLink active={navigationState === "tools"} label="Tools" component="button" onClick={() => setNavigationState("tools")} />
+        <Divider my="md" />
+        <NavLink
+          active={navigationState === "about-us"}
+          label="About Us"
+          component="button"
+          onClick={() => setNavigationState("about-us")}
+        />
         {user && (
-          <NavLink
-            active={navigationState === "profile"}
-            label="Profile"
-            component="button"
-            onClick={() => setNavigationState("profile")}
-          />
+          <>
+            <Divider my="md" />
+            <NavLink
+              active={navigationState === "profile"}
+              label="Profile"
+              component="button"
+              onClick={() => setNavigationState("profile")}
+            />
+          </>
         )}
       </AppShell.Navbar>
       <AppShell.Main>
@@ -101,6 +119,8 @@ function App() {
         {navigationState === "list-builder" && (
           <Title>List Builder is Under Construction</Title>
         )}
+        {navigationState === "about-us" && <AboutUs />}
+        {navigationState === "tools" && <Title>Under construction</Title>}
       </AppShell.Main>
       <AppShell.Footer>Footer</AppShell.Footer>
     </AppShell>

@@ -1,5 +1,5 @@
 import rawSongData from "./data/song.json"
-import {SongData} from "./songTypes.ts";
+import {BuilderRoles, SongData} from "./songTypes.ts";
 
 
 class DataLoader {
@@ -24,6 +24,13 @@ class DataLoader {
         else if (ent.id.startsWith("4")) ent._prop = "tactics";
         else if (ent.id.startsWith("5")) ent._prop = "specials";
         else ent._prop = "unknown";
+
+        if (ent.statistics.commander) ent._roleBuilder = BuilderRoles.commander;
+        else if (ent.statistics.enemy) ent._roleBuilder = BuilderRoles.enemy;
+        else if (ent._prop === "units") ent._roleBuilder = BuilderRoles.unit;
+        else if (ent._prop === "ncus") ent._roleBuilder = BuilderRoles.ncu;
+        else if (ent._prop === "attachments") ent._roleBuilder = BuilderRoles.attachment;
+        else ent._roleBuilder = BuilderRoles.none;
 
         ent.__isMutated = true;
 

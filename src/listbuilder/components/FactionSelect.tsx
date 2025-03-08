@@ -1,18 +1,18 @@
 import {Select} from "@mantine/core";
-import * as React from "react";
 import {useContext} from "react";
 import FilterContext from "../FilterContext.ts";
+import ArmyContext from "../ArmyContext.ts";
 import {FilterSongData} from "../filter.tsx";
-import {ArmyListData, FACTIONS} from "../../songTypes.ts";
+import {FACTIONS} from "../../songTypes.ts";
 
 
 interface FactionSelectOpts {
-    armyData: ArmyListData
-    setArmyData: React.Dispatch<React.SetStateAction<ArmyListData>>
     filterData: FilterSongData
 }
-function FactionSelect({armyData, setArmyData, filterData}: FactionSelectOpts) {
+function FactionSelect({filterData}: FactionSelectOpts) {
     const {setFilterState} = useContext(FilterContext);
+    const {armyData, setArmyFaction} = useContext(ArmyContext);
+
     return <Select
         data={Object.values(FACTIONS)}
         value={armyData.faction}
@@ -26,10 +26,7 @@ function FactionSelect({armyData, setArmyData, filterData}: FactionSelectOpts) {
                 return newState;
             });
 
-            setArmyData(prev => {
-                if (faction === prev.faction) return {...prev, faction: faction} as ArmyListData
-                return {faction: faction, ids: []} as ArmyListData
-            });
+            setArmyFaction(faction);
         }}
         className="m-1 mx-0">
     </Select>

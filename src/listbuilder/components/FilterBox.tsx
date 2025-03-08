@@ -8,26 +8,15 @@ import {
     ButtonGroup,
     Modal,
     ScrollArea,
-    Divider,
+    Divider, Switch, Flex,
+    Table, Grid, Image,
 } from "@mantine/core";
 import {FilterData, Filter} from "../filter.tsx"
 import {useContext, useMemo, useState} from "react";
 import {useDisclosure} from "@mantine/hooks";
 import FilterContext from "../FilterContext.ts";
 import {SongData} from "../../songTypes.ts";
-
-
-interface ListRowProps {
-    item: SongData
-}
-
-function ListRow({item}: ListRowProps) {
-    return <tr>
-        <td>{item.id}</td>
-        <td>{item._fullName}</td>
-        <td>{item._prop}</td>
-    </tr>
-}
+import ArmyContext from "../ArmyContext.ts";
 
 
 export interface FilterPillProps {
@@ -109,6 +98,95 @@ function FilterModal({isOpen, onClose, dataFilter}: FilterModalProps) {
 }
 
 
+interface ListDisplayProps {
+    displayData: SongData[],
+}
+
+function FilterListTextDisplay({displayData}: ListDisplayProps) {
+    const {addToArmy} = useContext(ArmyContext);
+
+    const tableRows = displayData.sort((a, b) => {
+        if (a._roleBuilder < b._roleBuilder) return -1;
+        else if (a._roleBuilder > b._roleBuilder) return 1;
+        return 0;
+    }).map((entity) => (
+        <Table.Tr key={entity.id}>
+            <Table.Td>{entity._fullName}</Table.Td>
+            <Table.Td>{entity.statistics.faction}</Table.Td>
+            <Table.Td>{entity._roleBuilder}</Table.Td>
+            <Table.Td>{entity.statistics.cost}</Table.Td>
+            <Table.Td>
+                <Button
+                    size="xs"
+                    variant="light"
+                    onClick={() => addToArmy(entity)}
+                >Add</Button>
+            </Table.Td>
+        </Table.Tr>
+    ));
+
+    return <ScrollArea scrollbars="y" offsetScrollbars>
+        <Table striped>
+            <Table.Thead>
+                <Table.Tr>
+                    <Table.Th>Name</Table.Th>
+                    <Table.Th>Faction</Table.Th>
+                    <Table.Th>Type</Table.Th>
+                    <Table.Th>Cost</Table.Th>
+                    <Table.Th>Add</Table.Th>
+                </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>{tableRows}</Table.Tbody>
+        </Table>
+    </ScrollArea>
+}
+
+function DisplayCard({entity}: { entity: SongData }) {
+    const src = `https://pf2etools.github.io/asoiaf-tmg-data/generated/en/${entity.statistics.faction}/${entity.id}.jpg`;
+    const {addToArmy} = useContext(ArmyContext);
+
+    return <>
+        <Image src={src} onClick={() => addToArmy(entity)}></Image>
+        <p className="my-0 pointer">
+            <b>{entity._fullName}</b>{` (${entity.statistics.cost})`}
+        </p>
+    </>
+}
+
+function FilterListImageDisplay({displayData}: ListDisplayProps) {
+    return <ScrollArea scrollbars="y" offsetScrollbars>
+        <Grid>
+            {displayData.map(it => <Grid.Col
+                key={it.id}
+                span={it._prop === "units" ? 6 : 3}>
+                <DisplayCard
+                    key={it.id}
+                    entity={it}
+                ></DisplayCard>
+            </Grid.Col>)}
+        </Grid>
+    </ScrollArea>
+}
+
+function FilterListDisplay({displayData}: ListDisplayProps) {
+    const [isDisplayImages, setIsDisplayImages] = useState(true);
+    return <>
+        <Flex>
+            <Switch
+                className="m-1"
+                defaultChecked
+                label="Display Images"
+                onChange={(event) => setIsDisplayImages(event.currentTarget.checked)}
+            ></Switch>
+            <span className="m-1 ml-auto"><b>{displayData.length} Items</b></span>
+        </Flex>
+        {isDisplayImages
+            ? <FilterListImageDisplay displayData={displayData}></FilterListImageDisplay>
+            : <FilterListTextDisplay displayData={displayData}></FilterListTextDisplay>}
+    </>
+}
+
+
 interface FilterBoxProps {
     data: SongData[],
     filterData: FilterData,
@@ -135,7 +213,7 @@ function FilterBox({data, filterData}: FilterBoxProps) {
         return filteredData.filter(item => item._fullName.toLowerCase().includes(searchText.toLowerCase()));
     }, [filteredData, searchText]);
 
-    return <>
+    return <Flex className="h-100" direction="column">
         <FilterModal
             isOpen={isFilterModalOpen}
             onClose={doCloseFilterModal}
@@ -172,17 +250,8 @@ function FilterBox({data, filterData}: FilterBoxProps) {
                         onClick={() => doSetNextFilterState(filter, props.item, 0)}/>
                 }))}
         </PillGroup>
-        <table className="m-1 filter-list">
-            <thead>
-            <tr>
-                <td><b>{filteredSearchedData.length} Items</b></td>
-            </tr>
-            </thead>
-            <tbody>
-            {filteredSearchedData.map((it, ix) => <ListRow key={ix} item={it}/>)}
-            </tbody>
-        </table>
-    </>
+        <FilterListDisplay displayData={filteredSearchedData}></FilterListDisplay>
+    </Flex>
 }
 
 export default FilterBox

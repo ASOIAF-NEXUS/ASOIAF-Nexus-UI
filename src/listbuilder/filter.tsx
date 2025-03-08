@@ -188,13 +188,13 @@ export class FilterSongData extends FilterData {
     }
 
     addToFilters(ent: SongData) {
-        this.typeFilter.addItem(ent._prop);
+        this.typeFilter.addItem(ent._roleBuilder);
         this.factionFilter.addItem(ent.statistics.faction);
     }
 
     getValuesForFilter(ent: SongData): T_FilterValue[][] {
         return [
-            [ent._prop],
+            [ent._roleBuilder],
             [ent.statistics.faction],
         ]
     }

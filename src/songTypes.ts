@@ -14,19 +14,6 @@ export enum FACTIONS {
     neutral = "neutral",
 }
 
-export interface ArmyListData {
-    faction: FACTIONS
-    ids: number[]
-}
-
-interface ParsedArmyData {
-    faction: FACTIONS
-    commander: SongData | undefined
-    units: {unit: SongData, attachments: SongData[]}[]
-    ncu: SongData[]
-    enemy: SongData[]
-}
-
 export interface SongData {
     id: string,
     name: string,
@@ -61,7 +48,7 @@ export interface SongData {
         enemy?: boolean
         tactics?: {
             cards: Dictionary<string>
-            remove: string[]
+            remove?: string[]
         }
         remove?: string
         commander_id?: string
@@ -78,31 +65,79 @@ export interface SongData {
     }
 
     __isMutated: boolean
-    _prop: "unknown" | "units" | "attachments" | "ncus" | "tactics" | "specials"
+
     _fullName: string
+    _prop: "unknown" | "units" | "attachments" | "ncus" | "tactics" | "specials"
+    _roleBuilder: BuilderRoles
 }
 
-export function parseArmyList(armyList: ArmyListData, data: SongData[]) {
-    const dataArray = armyList.ids.map(id => data.find(it => it.id === String(id))).filter(it => !!it);
+export enum BuilderRoles {
+    commander = "Commander",
+    unit = "Combat Unit",
+    ncu = "NCU",
+    attachment = "Attachment",
+    enemy = "Enemy Attachment",
+    none = "None",
+}
+
+// The ids might be in a wrong order, creating an invalid list!
+export interface ArmyListIDs {
+    faction: FACTIONS
+    ids: string[]
+}
+export interface ArmyListData {
+    faction: FACTIONS
+    commander: SongData | undefined
+    unit: {unit: null | SongData, attachments: SongData[]}[]
+    ncu: SongData[]
+    enemy: SongData[]
+}
+
+
+export function armyIdsToArmyData(armyList: ArmyListIDs, data: SongData[]) {
     const army = {
         faction: armyList.faction,
-        commander: dataArray.find(d => d.statistics.commander),
-        units: [],
+        commander: undefined,
+        unit: [],
         ncu: [],
         enemy: []
-    } as ParsedArmyData;
+    } as ArmyListData;
 
     let unit = undefined;
-    for (const entity of dataArray) {
-        if (entity._prop === "ncus") army.ncu.push(entity);
-        else if (entity.statistics.enemy) army.enemy.push(entity);
-        else if (entity._prop === "units") {
-            if (unit !== undefined) army.units.push(unit);
+    for (const entId of armyList.ids) {
+        const entity = entId === "0" ? null : data.find(it => it.id === entId);
+
+        if (entity === undefined) {
+            continue;
+        }
+
+        if (entity === null || entity._prop === "units") {
+            if (unit !== undefined) army.unit.push(unit);
             unit = {unit: entity, attachments: [] as SongData[]}
         } else if (entity._prop === "attachments") {
-            if (unit !== undefined) unit.attachments.push(entity);
-        }
+            if (unit === undefined) unit = {unit: null, attachments: [] as SongData[]}
+            unit.attachments.push(entity)
+        } else if (entity._prop === "ncus") army.ncu.push(entity);
+        else if (entity.statistics.enemy) army.enemy.push(entity);
+
+        if (army.commander === undefined && entity?.statistics.commander) army.commander = entity;
     }
+    if (unit !== undefined) army.unit.push(unit);
+
+    return army
+}
+
+export function armyDataToArmyIds(armyData: ArmyListData) {
+    const army = {
+        faction: armyData.faction,
+        ids: [],
+    } as ArmyListIDs;
+    armyData.unit.forEach(obj => {
+        army.ids.push(obj.unit === null ? "0" : obj.unit.id);
+        army.ids.push(...obj.attachments.map(a => a.id));
+    });
+    army.ids.push(...armyData.ncu.map(n => n.id));
+    army.ids.push(...armyData.enemy.map(e => e.id));
 
     return army
 }

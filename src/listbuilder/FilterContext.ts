@@ -1,11 +1,10 @@
-import * as React from "react";
-import {createContext, Dispatch} from "react";
-import {T_FilterState} from "./filter.tsx";
+import {createContext} from "react";
+import {T_FilterState, T_setFilterState} from "./filter.tsx";
 
 
 interface FilterContextVal {
     filterState: T_FilterState
-    setFilterState: Dispatch<React.SetStateAction<T_FilterState>>
+    setFilterState: T_setFilterState
 }
 
 const FilterContext = createContext({} as FilterContextVal);

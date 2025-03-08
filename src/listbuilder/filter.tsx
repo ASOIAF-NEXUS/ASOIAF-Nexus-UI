@@ -1,10 +1,12 @@
 import {Dictionary} from "../utils.ts";
-import {FilterMiniPillProps, FilterPillProps} from "./components/FilterBox.tsx";
 import {SongData} from "../songTypes.ts";
+import {Button, Divider, Pill, PillGroup} from "@mantine/core";
+import * as React from "react";
 
 
 type T_FilterValue = string | number;
 export type T_FilterState = Dictionary<number>;
+export type T_setFilterState = React.Dispatch<React.SetStateAction<T_FilterState>>
 
 
 interface FilterItemOpts {
@@ -69,11 +71,11 @@ export class Filter {
         return `${this.hash}.${filterItem}`;
     }
 
-    _isOwnFilterStateHash(fsHash: string) {
+    private _isOwnFilterStateHash(fsHash: string) {
         return fsHash.startsWith(this.hash);
     }
 
-    _getOwnFilterState(filterState: T_FilterState): T_FilterState {
+    private _getOwnFilterState(filterState: T_FilterState): T_FilterState {
         return Object.fromEntries(Object.keys(filterState).filter(k => this._isOwnFilterStateHash(k)).map(k => [k, filterState[k]]));
     }
 
@@ -81,11 +83,11 @@ export class Filter {
         return (prevState + 1) % 3
     }
 
-    _getItemHash(item: T_FilterValue) {
+    private _getItemHash(item: T_FilterValue) {
         return String(item);
     }
 
-    _getFilterItem(item: T_FilterValue): FilterItem {
+    private _getFilterItem(item: T_FilterValue): FilterItem {
         const hash = this._getItemHash(item);
         return new FilterItem({item, hash})
     }
@@ -109,39 +111,71 @@ export class Filter {
         return display && !hide
     }
 
-    _getMiniPillProps_getPillProp(item: FilterItem, filterState: number): FilterMiniPillProps {
-        return {
-            isRenderPill: this._isAlwaysRenderPill || filterState !== 0,
-            className: filterState === 0 ? "filter-pill--gray" : filterState === 1 ? "filter-pill--blue" : "filter-pill--red",
-            children: item.hash.toTitleCase(),
-            item: item.hash,
-        }
+    private _onClickFilterPill(setFilterState: T_setFilterState, filterItem: FilterItem) {
+        setFilterState(prevState => {
+            const newState = {...prevState};
+            const stateHash = this.getFilterStateHash(filterItem);
+            newState[stateHash] = this.cycleState(prevState[stateHash]);
+            return newState;
+        });
     }
 
-    getMiniPillProps(filterState: T_FilterState) {
-        return this._items.map(filterItem => this._getMiniPillProps_getPillProp(
-            filterItem,
-            filterState[this.getFilterStateHash(filterItem)],
-        ));
+    private _getRenderedFilterPill(filterState: T_FilterState, filterItem: FilterItem, setFilterState: T_setFilterState) {
+        const stateHash = this.getFilterStateHash(filterItem);
+        const fs = filterState[stateHash];
+        return <Button
+            size="xs"
+            key={stateHash}
+            variant={fs === 0 ? "light" : "filled"}
+            color={fs === 0 ? "gray" : fs === 1 ? "blue" : "red"}
+            onClick={() => this._onClickFilterPill(setFilterState, filterItem)}
+        >
+            {filterItem.hash.toTitleCase()}
+        </Button>
     }
 
-    _getPillProps_getPillProp(item: FilterItem, filterState: number): FilterPillProps {
-        return {
-            variant: filterState === 0 ? "light" : "filled",
-            color: filterState === 0 ? "gray" : filterState === 1 ? "blue" : "red",
-            children: item.hash.toTitleCase(),
-            item: item.hash,
-        }
+    private _getRenderedFilterPills(filterState: T_FilterState, setFilterState: T_setFilterState) {
+        return this._items.map(fi => this._getRenderedFilterPill(filterState, fi, setFilterState));
     }
 
-    getPillProps(filterState: T_FilterState) {
-        return this._items.map(filterItem => this._getPillProps_getPillProp(
-            filterItem,
-            filterState[this.getFilterStateHash(filterItem)],
-        ));
+    getRenderedModalRow (filterState: T_FilterState, setFilterState: T_setFilterState) {
+        return <div className="m-1 mx-0" key={this.header}>
+            <p>{this.header}</p>
+            <PillGroup>
+                {this._getRenderedFilterPills(filterState, setFilterState)}
+            </PillGroup>
+            <Divider className="m-1 mx-0"></Divider>
+        </div>
+    }
+
+    private _onClickMiniPill(setFilterState: T_setFilterState, filterItem: FilterItem) {
+        setFilterState(prevState => {
+            const newState = {...prevState};
+            newState[this.getFilterStateHash(filterItem)] = 0;
+            return newState;
+        });
+    }
+
+    private _getRenderedMiniPill(filterState: T_FilterState, filterItem: FilterItem, setFilterState: T_setFilterState) {
+        const stateHash = this.getFilterStateHash(filterItem);
+        const fs = filterState[stateHash];
+
+        if (!this._isAlwaysRenderPill && fs === 0) return null;
+
+        return <Pill
+            key={stateHash}
+            size="xs"
+            className={fs === 0 ? "filter-pill--gray" : fs === 1 ? "filter-pill--blue" : "filter-pill--red"}
+            onClick={() => this._onClickMiniPill(setFilterState, filterItem)}
+        >
+            {filterItem.hash.toTitleCase()}
+        </Pill>
+    }
+
+    getRenderedMiniPills(filterState: T_FilterState, setFilterState: T_setFilterState) {
+        return this._items.map(fi => this._getRenderedMiniPill(filterState, fi, setFilterState));
     }
 }
-
 
 export abstract class FilterData {
     abstract get filters(): Filter[]

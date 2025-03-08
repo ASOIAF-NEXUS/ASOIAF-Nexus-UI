@@ -6,10 +6,11 @@ import FilterBox from "./FilterBox.tsx"
 import ArmyDisplay from "./ArmyDisplay.tsx";
 import FilterContextProvider from "./FilterContextProvider.tsx";
 import FactionSelect from "./FactionSelect.tsx";
-import {FACTIONS} from "../../songTypes.ts";
+import {FACTIONS, SongData} from "../../songTypes.ts";
 import "../../utils.ts"
 import {Flex} from "@mantine/core";
 import ArmyContextProvider from "./ArmyContextProvider.tsx";
+import SongDataFilterListDisplay from "./SongDataFilterListDisplay.tsx";
 
 
 const data = dataLoader.load().filter(d => d._prop != "tactics" && d._prop != "specials");
@@ -30,9 +31,10 @@ function ListBuilder() {
             <ArmyContextProvider defaultArmyData={defaultArmyData} data={data}>
                 <Flex gap="xl" direction="row" className="h-100">
                     <Flex className="h-100 w-60" direction="column">
-                        <FilterBox
+                        <FilterBox<SongData>
                             data={data}
                             filterData={filterSongData}
+                            FilterListDisplay={SongDataFilterListDisplay}
                         ></FilterBox>
                     </Flex>
                     <Flex className="h-100 w-40" direction="column">

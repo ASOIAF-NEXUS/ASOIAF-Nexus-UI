@@ -1,9 +1,10 @@
-import { Paper, Title, Text, Stack, Group, List } from "@mantine/core";
+import { Paper, Title, Text, Stack, Group, List, Anchor } from "@mantine/core";
 
 function HomePage() {
   return (
     <Stack>
       <Paper shadow="md" radius="sm" p="xl" withBorder><Title>Home Page</Title></Paper>
+      <Paper shadow="xs" radius="md" p="xl" withBorder><Text>We need your help defining the future of ASOIAF tools. </Text><Text> Please take this <Anchor styles={{root: { fontWeight: 700 }}} href="https://forms.office.com/r/e4U5grfyWK">survey</Anchor> to contribute to ASOIAF's future.</Text></Paper>
       <Paper shadow="xs" radius="md" p="xl" withBorder>
         <Stack gap="md">
         <Title>Mission</Title>

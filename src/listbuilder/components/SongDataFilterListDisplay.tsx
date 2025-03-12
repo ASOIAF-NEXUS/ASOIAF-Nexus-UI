@@ -2,6 +2,7 @@ import {SongData} from "../../songTypes.ts";
 import {useContext, useState} from "react";
 import ArmyContext from "../ArmyContext.ts";
 import {Button, Flex, Grid, Image, ScrollArea, Switch, Table} from "@mantine/core";
+import SongHoverWrapper from "../../components/SongHoverWrapper.tsx";
 
 interface ListDisplayProps {
     displayData: SongData[],
@@ -15,7 +16,7 @@ function FilterListTextDisplay({displayData}: ListDisplayProps) {
         else if (a._roleBuilder > b._roleBuilder) return 1;
         return 0;
     }).map((entity) => (
-        <Table.Tr key={entity.id}>
+        <SongHoverWrapper key={entity.id} entity={entity}><Table.Tr>
             <Table.Td>{entity._fullName}</Table.Td>
             <Table.Td>{entity.statistics.faction}</Table.Td>
             <Table.Td>{entity._roleBuilder}</Table.Td>
@@ -27,7 +28,7 @@ function FilterListTextDisplay({displayData}: ListDisplayProps) {
                     onClick={() => addToArmy(entity)}
                 >Add</Button>
             </Table.Td>
-        </Table.Tr>
+        </Table.Tr></SongHoverWrapper>
     ));
 
     return <ScrollArea scrollbars="y" offsetScrollbars>

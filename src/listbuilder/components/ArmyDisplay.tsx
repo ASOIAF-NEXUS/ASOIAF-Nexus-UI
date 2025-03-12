@@ -4,13 +4,16 @@ import {useContext} from "react";
 import FilterContext from "../FilterContext.ts";
 import {FilterSongData} from "../filter.tsx";
 import ArmyContext from "../ArmyContext.ts";
+import SongHoverWrapper from "../../components/SongHoverWrapper.tsx";
 
 
 function UnitCard({songObj, onClickDelete}: { songObj: SongData, onClickDelete: () => void }) {
     const imgSrc = `https://raw.githubusercontent.com/Pf2eTools/asoiaf-tmg-data/refs/heads/master/portraits/square/${songObj.id}.jpg`;
     const attachmentClass = songObj._prop === "attachments" && !songObj.statistics.enemy ? "card--attachment" : ""
     return <div className={"flex card " + attachmentClass}>
-        <img src={imgSrc} alt="?" className="m-0 unit-img"/>
+        <SongHoverWrapper entity={songObj}>
+            <img src={imgSrc} alt="?" className="m-0 unit-img"/>
+        </SongHoverWrapper>
         <p className="card__p">
             <span className="unit-name">{songObj.name}</span>
             <span className="unit-name unit-sub-name">{songObj.subname || ""}</span>

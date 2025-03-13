@@ -52,8 +52,8 @@ function DisplayCard({entity}: { entity: SongData }) {
     const {addToArmy} = useContext(ArmyContext);
 
     return <>
-        <Image src={src} onClick={() => addToArmy(entity)}></Image>
-        <p className="my-0 pointer">
+        <Image className="pointer" src={src} onClick={() => addToArmy(entity)}></Image>
+        <p className="my-0">
             <b>{entity._fullName}</b>{` (${entity.statistics.cost})`}
         </p>
     </>

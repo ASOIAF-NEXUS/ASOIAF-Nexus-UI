@@ -27,7 +27,7 @@ function useMouseDrag({handleDrag, onStartDrag, onStopDrag}: useMouseDragOpts) {
             if (isDragging.current) {
                 isDragging.current = false;
                 unbind();
-                if (typeof onStopDrag === "function") onStopDrag(evt);
+                if (onStopDrag) onStopDrag(evt);
             }
         }
 
@@ -44,7 +44,7 @@ function useMouseDrag({handleDrag, onStartDrag, onStopDrag}: useMouseDragOpts) {
             if (!isDragging.current) {
                 isDragging.current = true;
                 bind();
-                if (typeof onStartDrag === "function") onStartDrag(evt);
+                if (onStartDrag) onStartDrag(evt);
                 onMouseMove(evt);
             }
         }, {signal});

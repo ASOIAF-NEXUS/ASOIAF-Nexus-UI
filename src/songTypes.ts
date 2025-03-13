@@ -84,6 +84,8 @@ export enum BuilderRoles {
 export interface ArmyListIDs {
     faction: FACTIONS
     ids: string[]
+    points: number
+    format: string
 }
 export interface ArmyListData {
     faction: FACTIONS
@@ -91,8 +93,10 @@ export interface ArmyListData {
     unit: {unit: null | SongData, attachments: SongData[]}[]
     ncu: SongData[]
     enemy: SongData[]
+    points: number
+    format: string
 }
-
+export const defaultArmySize = 40;
 
 export function armyIdsToArmyData(armyList: ArmyListIDs, data: SongData[]) {
     const army = {
@@ -100,7 +104,9 @@ export function armyIdsToArmyData(armyList: ArmyListIDs, data: SongData[]) {
         commander: undefined,
         unit: [],
         ncu: [],
-        enemy: []
+        enemy: [],
+        points: armyList.points,
+        format: armyList.format,
     } as ArmyListData;
 
     let unit = undefined;
@@ -131,6 +137,8 @@ export function armyDataToArmyIds(armyData: ArmyListData) {
     const army = {
         faction: armyData.faction,
         ids: [],
+        points: armyData.points,
+        format: armyData.format,
     } as ArmyListIDs;
     armyData.unit.forEach(obj => {
         army.ids.push(obj.unit === null ? "0" : obj.unit.id);

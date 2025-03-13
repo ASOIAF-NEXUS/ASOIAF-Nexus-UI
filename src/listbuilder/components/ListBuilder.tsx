@@ -6,21 +6,25 @@ import FilterBox from "./FilterBox.tsx"
 import ArmyDisplay from "./ArmyDisplay.tsx";
 import FilterContextProvider from "./FilterContextProvider.tsx";
 import FactionSelect from "./FactionSelect.tsx";
-import {FACTIONS, SongData} from "../../songTypes.ts";
+import {ArmyListIDs, defaultArmySize, FACTIONS, SongData} from "../../songTypes.ts";
 import "../../utils.ts"
 import {Flex} from "@mantine/core";
 import ArmyContextProvider from "./ArmyContextProvider.tsx";
 import SongDataFilterListDisplay from "./SongDataFilterListDisplay.tsx";
 import HoverContextProvider from "../../components/HoverContextProvider.tsx";
+import ArmySizeSelect from "./ArmySizeSelect.tsx";
+import FormatSelect from "./FormatSelect.tsx";
 
 
 const data = dataLoader.load().filter(d => d._prop != "tactics" && d._prop != "specials");
 const filterSongData = new FilterSongData();
 data.forEach(item => filterSongData.addToFilters(item));
 
-const defaultArmyData = {
+const defaultArmyData: ArmyListIDs = {
     faction: FACTIONS.greyjoy,
-    ids: []
+    ids: [],
+    points: defaultArmySize,
+    format: "standard",
 }
 
 function ListBuilder() {
@@ -40,9 +44,11 @@ function ListBuilder() {
                             ></FilterBox>
                         </Flex>
                         <Flex className="h-100 w-40" direction="column">
-                            <FactionSelect
-                                filterData={filterSongData}
-                            ></FactionSelect>
+                            <Flex>
+                                <FactionSelect filterData={filterSongData}></FactionSelect>
+                                <ArmySizeSelect />
+                                <FormatSelect />
+                            </Flex>
                             <ArmyDisplay
                                 filterData={filterSongData}
                             ></ArmyDisplay>

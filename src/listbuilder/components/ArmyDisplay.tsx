@@ -68,7 +68,7 @@ function ArmyDisplay({filterData}: ArmyDisplayProps) {
 
     return <ScrollArea scrollbars="y" offsetScrollbars><Stack className="gap-0">
         {armyData.commander === undefined
-            ? <AddToArmyButton text="Add Commander" onClick={() => setFilterAndSlot(BuilderRoles.commander, -1)}></AddToArmyButton>
+            ? <><h3>No Commander Selected</h3><AddToArmyButton text="Add Commander" onClick={() => setFilterAndSlot(BuilderRoles.commander, -1)}></AddToArmyButton></>
             : <h3>{armyData.commander.name}</h3>}
 
         <h3 className="m-1 mx-0">Combat Units</h3>

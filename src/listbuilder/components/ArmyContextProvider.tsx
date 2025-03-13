@@ -1,6 +1,13 @@
 import {ReactNode, useRef, useState} from "react";
-import ArmyContext from "../ArmyContext.ts";
-import {armyDataToArmyIds, armyIdsToArmyData, ArmyListIDs, BuilderRoles, SongData} from "../../songTypes.ts";
+import ArmyContext, {withConfirm} from "../ArmyContext.ts";
+import {
+    armyDataToArmyIds,
+    armyIdsToArmyData,
+    ArmyListIDs,
+    BuilderRoles,
+    defaultArmySize,
+    SongData
+} from "../../songTypes.ts";
 
 
 interface ArmyContextProviderProps {
@@ -95,14 +102,41 @@ function ArmyContextProvider({children, defaultArmyData, data}: ArmyContextProvi
         setArmyIds(armyDataToArmyIds(armyData));
     }
 
-    const setArmyFaction = function (faction: string) {
+    const _setArmyFaction = function (faction: string) {
         setArmyIds(prev => {
-            if (faction === prev.faction) return {faction: faction, ids: [...prev.ids]} as ArmyListIDs
-            return {faction: faction, ids: []} as ArmyListIDs
+            if (faction === prev.faction) return prev;
+            return {...prev, faction: faction, ids: []} as ArmyListIDs
         });
     }
 
-    return <ArmyContext.Provider value={{armyData, addToArmy, deleteFromArmy, setArmyFaction, slot}}>
+    const setArmyFaction = function (faction: string, withConfirm?: withConfirm) {
+        if (withConfirm && withConfirm.askConfirm && faction !== armyIds.faction && armyIds.ids.length) {
+            withConfirm.askConfirm({
+                onConfirm: () => {
+                    if (withConfirm.onConfirm) withConfirm.onConfirm();
+                    _setArmyFaction(faction);
+                },
+                onCancel: withConfirm.onCancel,
+            });
+        } else {
+            _setArmyFaction(faction);
+            if (withConfirm?.onConfirm) withConfirm.onConfirm();
+        }
+    }
+
+    const setArmyPoints = function (points: number) {
+        setArmyIds(prev => {
+            return {...prev, points: points || defaultArmySize, ids: [...prev.ids]} as ArmyListIDs
+        });
+    }
+
+    const setArmyFormat = function (format: string) {
+        setArmyIds(prev => {
+            return {...prev, format, ids: [...prev.ids]} as ArmyListIDs
+        });
+    }
+
+    return <ArmyContext.Provider value={{armyData, addToArmy, deleteFromArmy, setArmyFaction, setArmyPoints, setArmyFormat, slot}}>
         {children}
     </ArmyContext.Provider>
 }

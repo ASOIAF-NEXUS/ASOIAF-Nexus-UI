@@ -14,6 +14,15 @@ export enum FACTIONS {
     neutral = "neutral",
 }
 
+function getRenderedFaction(faction: FACTIONS) {
+    switch (faction) {
+        case FACTIONS.freefolk: return "Free Folk";
+        case FACTIONS.nightswatch: return "Night's Watch";
+        case FACTIONS.brotherhood: return "Brotherhood without Banners";
+        default: return faction.toTitleCase();
+    }
+}
+
 export interface SongData {
     id: string,
     name: string,
@@ -97,6 +106,20 @@ export interface ArmyListData {
     format: string
 }
 export const defaultArmySize = 40;
+export const defaultArmyFormat = "standard";
+
+export type T_armyFormat = {
+    name: string
+    description: string
+}
+
+export const FORMATS: Dictionary<T_armyFormat> = {
+    standard: {name: "Standard", description: "The rules described in the official rulebook."},
+    decisive: {name: "Decisive Encounters", description: "Armies may include a few attachments for free."},
+    draft: {name: "Draft", description: "Build from a drafted pool, but with fewer restrictions."},
+    milestone: {name: "Milestone", description: "Armies change over the course of campaigns."},
+}
+
 
 export function armyIdsToArmyData(armyList: ArmyListIDs, data: SongData[]) {
     const army = {
@@ -148,4 +171,55 @@ export function armyDataToArmyIds(armyData: ArmyListData) {
     army.ids.push(...armyData.enemy.map(e => e.id));
 
     return army
+}
+
+export function* iterateArmyData(armyData: ArmyListData) {
+    for (const unitObject of armyData.unit) {
+        yield unitObject.unit;
+        for (const attachment of unitObject.attachments) {
+            yield attachment;
+        }
+    }
+    for (const ncu of armyData.ncu) {
+        yield ncu;
+    }
+    for (const enemy of armyData.enemy) {
+        yield enemy;
+    }
+    return armyData;
+}
+
+export function armyToTTS(army: ArmyListData) {
+    return `${army.faction};${[...iterateArmyData(army)].map(it => it === null ? "0" : it.id).join(",")}`;
+}
+
+export function armyToString(army: ArmyListData) {
+    let out = `Format: ${FORMATS[army.format]?.name || "Unknown Format"} (${army.points} Points)\n`;
+    out += `Faction: ${getRenderedFaction(army.faction)}\n`;
+    if (army.commander) out += `Commander: ${army.commander._fullName}\n`;
+    else out += "Commander: No Commander included.\n";
+
+    const appendUnit = (obj: SongData) => {
+        out += ` • ${obj._fullName} (${obj.statistics.cost})\n`;
+    }
+    out += "\nCombat Units:\n";
+    if (army.unit.length === 0) out += "No Combat Units included.\n"
+    army.unit.forEach(u => {
+        if (u.unit) appendUnit(u.unit);
+        u.attachments.forEach(a => out += `     ${a._fullName} (${a.statistics.cost})\n`);
+    });
+
+    out += "\nNCUs:\n";
+    if (army.ncu.length === 0) out += "No NCUs included.\n"
+    army.ncu.forEach(ncu => appendUnit(ncu));
+
+    if (army.enemy.length) {
+        out += "\nEnemy Attachments:\n";
+        army.enemy.forEach(enemy => appendUnit(enemy));
+    }
+
+    // :^)
+    out += "\nArmy built on http://localhost:5173/\n"
+
+    return out;
 }

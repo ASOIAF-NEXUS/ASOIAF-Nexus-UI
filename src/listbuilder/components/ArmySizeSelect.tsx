@@ -8,7 +8,7 @@ function ArmySizeSelect() {
 
     return <Popover width={275} position="bottom" withArrow shadow="md">
         <Popover.Target>
-            <Button size="xl" h={50} w={50} variant="default" style={{padding: 5, margin: 5}}>
+            <Button size="xl" h={50} w={50} variant="default" style={{padding: 5}}>
                 {armyData.points}
             </Button>
         </Popover.Target>

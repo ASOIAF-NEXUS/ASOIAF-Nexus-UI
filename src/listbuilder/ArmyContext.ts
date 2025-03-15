@@ -1,6 +1,6 @@
 import * as React from "react";
 import {createContext} from "react";
-import {ArmyListData, SongData} from "../songTypes.ts";
+import {ArmyListData, ArmyListIDs, SongData} from "../songTypes.ts";
 import {confirmHandlers} from "../hooks/useConfirm.tsx";
 
 export interface withConfirm {
@@ -12,6 +12,8 @@ export interface withConfirm {
 
 interface ArmyContextVal {
     armyData: ArmyListData
+    armyIds: ArmyListIDs
+    loadArmy: (a: ArmyListIDs) => void
     setArmyFaction: (f: string, withConfirm?: withConfirm) => void
     setArmyPoints: (n: number) => void
     setArmyFormat: (f: string) => void

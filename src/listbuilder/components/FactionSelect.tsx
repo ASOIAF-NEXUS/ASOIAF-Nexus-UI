@@ -52,7 +52,7 @@ function FactionSelect({filterData}: FactionSelectOpts) {
         <ConfirmModal/>
         <Popover width={355} position="bottom" withArrow shadow="md" opened={openedPopover} onChange={setOpenedPopover}>
             <Popover.Target>
-                <Button h={50} w={50} variant="default" style={{padding: 2, margin: 5, marginLeft: 0}} onClick={() => setOpenedPopover(o => !o)}>
+                <Button h={50} w={50} variant="default" style={{padding: 2}} onClick={() => setOpenedPopover(o => !o)}>
                     <Image
                         h="100%"
                         w="auto"

@@ -6,7 +6,7 @@ import FilterBox from "./FilterBox.tsx"
 import ArmyDisplay from "./ArmyDisplay.tsx";
 import FilterContextProvider from "./FilterContextProvider.tsx";
 import FactionSelect from "./FactionSelect.tsx";
-import {ArmyListIDs, defaultArmySize, FACTIONS, SongData} from "../../songTypes.ts";
+import {ArmyListIDs, defaultArmyFormat, defaultArmySize, FACTIONS, SongData} from "../../songTypes.ts";
 import "../../utils.ts"
 import {Flex} from "@mantine/core";
 import ArmyContextProvider from "./ArmyContextProvider.tsx";
@@ -14,6 +14,9 @@ import SongDataFilterListDisplay from "./SongDataFilterListDisplay.tsx";
 import HoverContextProvider from "../../components/HoverContextProvider.tsx";
 import ArmySizeSelect from "./ArmySizeSelect.tsx";
 import FormatSelect from "./FormatSelect.tsx";
+import SaveLoadControls from "./SaveLoadArmies.tsx";
+import ImportArmyButton from "./ImportArmyButton.tsx";
+import ExportArmyButton from "./ExportArmyButton.tsx";
 
 
 const data = dataLoader.load().filter(d => d._prop != "tactics" && d._prop != "specials");
@@ -24,7 +27,7 @@ const defaultArmyData: ArmyListIDs = {
     faction: FACTIONS.greyjoy,
     ids: [],
     points: defaultArmySize,
-    format: "standard",
+    format: defaultArmyFormat,
 }
 
 function ListBuilder() {
@@ -44,10 +47,13 @@ function ListBuilder() {
                             ></FilterBox>
                         </Flex>
                         <Flex className="h-100 w-40" direction="column">
-                            <Flex>
+                            <Flex className="my-1" align="center" gap={5}>
                                 <FactionSelect filterData={filterSongData}></FactionSelect>
                                 <ArmySizeSelect />
                                 <FormatSelect />
+                                <SaveLoadControls data={data}/>
+                                <ImportArmyButton />
+                                <ExportArmyButton />
                             </Flex>
                             <ArmyDisplay
                                 filterData={filterSongData}

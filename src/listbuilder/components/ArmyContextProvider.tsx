@@ -136,7 +136,21 @@ function ArmyContextProvider({children, defaultArmyData, data}: ArmyContextProvi
         });
     }
 
-    return <ArmyContext.Provider value={{armyData, addToArmy, deleteFromArmy, setArmyFaction, setArmyPoints, setArmyFormat, slot}}>
+    const loadArmy = function (army: ArmyListIDs) {
+        setArmyIds(army);
+    }
+
+    return <ArmyContext.Provider value={{
+        armyData,
+        armyIds,
+        loadArmy,
+        addToArmy,
+        deleteFromArmy,
+        setArmyFaction,
+        setArmyPoints,
+        setArmyFormat,
+        slot
+    }}>
         {children}
     </ArmyContext.Provider>
 }

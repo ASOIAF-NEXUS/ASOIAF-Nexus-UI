@@ -1,4 +1,3 @@
-"use server"
 import '@mantine/core/styles.css';
 import "./App.css";
 import ListBuilder from "./listbuilder/components/ListBuilder.tsx";

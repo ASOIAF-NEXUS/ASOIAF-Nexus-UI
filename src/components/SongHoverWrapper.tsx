@@ -16,7 +16,7 @@ function SongHoverWrapper({children, entity}: SongHoverWrapperProps) {
     const getImage = (src: string) => {
         return <Image
             src={src}
-        > </Image>
+        ></Image>
     }
 
     return <HoverWrapper

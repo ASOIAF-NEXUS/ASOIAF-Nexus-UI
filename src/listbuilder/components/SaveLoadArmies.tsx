@@ -130,7 +130,10 @@ function SaveModal({setSavedArmies}: SaveModalProps) {
                 </Flex>
             </Flex>
         </Modal>
-        <Button color="green" onClick={open}>Save</Button>
+        <Button color="green" onClick={() => {
+            setArmyName("");
+            open();
+        }}>Save</Button>
     </>
 }
 

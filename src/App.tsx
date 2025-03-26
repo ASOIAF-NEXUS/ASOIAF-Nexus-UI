@@ -16,7 +16,8 @@ import { useDisclosure } from "@mantine/hooks";
 import { NavLink } from "@mantine/core";
 import HomePage from "./HomePage";
 import AboutUs from "./AboutUs";
-import { AuthContext, AuthForm, SignIn, SignUp } from "./AuthForms";
+import { AuthForm, SignIn, SignUp } from "./AuthForms";
+import { AuthContext } from "./AuthContext";
 
 type NavigationState =
   | "home"

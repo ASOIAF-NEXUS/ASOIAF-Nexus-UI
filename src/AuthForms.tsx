@@ -34,7 +34,6 @@ export function AuthForm({type, action}: {type: "sign-up" | "sign-in", action: (
 
 export async function SignUp(login: Login) {
     const backend_url = import.meta.env.VITE_BACKEND_URL
-    console.log(backend_url)
     axios.post(`${backend_url}/api/v1/users/signup`, login);
 }
 

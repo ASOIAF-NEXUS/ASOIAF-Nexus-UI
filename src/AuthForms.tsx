@@ -1,16 +1,14 @@
 import { Button, Paper, PasswordInput, Stack, TextInput, Title} from "@mantine/core";
 import { useForm } from "@mantine/form";
 import axios from "axios";
-import { createContext } from "react";
 
-type Login = {username: String, password: String}
-type AuthToken = string;
+type Login = {username: string, password: string}
 
-export const AuthContext = createContext<AuthToken>("");
 
 export function AuthForm({type, action}: {type: "sign-up" | "sign-in", action: (l: Login) => Promise<any>}) {
     const form = useForm({mode: "uncontrolled", initialValues: {username: "", password: ""}});
-
+    const backend_url = import.meta.env.VITE_BACKEND_URL
+    console.log(backend_url)
     return (
         <Paper shadow="md" radius="sm" p="xl" withBorder>
             <Stack gap="md">
@@ -35,9 +33,11 @@ export function AuthForm({type, action}: {type: "sign-up" | "sign-in", action: (
 }
 
 export async function SignUp(login: Login) {
-    axios.post("http://localhost:8080/api/v1/users/signup", login);
+    const backend_url = import.meta.env.VITE_BACKEND_URL
+    axios.post(`${backend_url}/api/v1/users/signup`, login);
 }
 
 export async function SignIn(login: Login): Promise<string> {
-    return await axios.post("http://localhost:8080/api/v1/users/login", login);
+    const backend_url = import.meta.env.VITE_BACKEND_URL
+    return await axios.post(`${backend_url}/api/v1/users/login`, login);
 }

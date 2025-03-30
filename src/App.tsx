@@ -17,9 +17,10 @@ import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import HomePage from "./HomePage";
 import AboutUs from "./AboutUs";
-import { AuthForm, SignIn, SignUp } from "./AuthForms";
+import { AuthForm, signIn, signUp } from "./AuthForms";
 import { AuthContext } from "./AuthContext";
-import { defaultErrorNotification, successfulSignupNotification } from "./Notifications";
+import { defaultErrorNotification, invalidLoginNotification, successfulSignupNotification } from "./Notifications";
+import { AxiosError } from "axios";
 
 type NavigationState =
   | "home"
@@ -132,9 +133,9 @@ function App() {
             <AuthForm type={navigationState}
               action={async (login) => {
                 try {
-                  await SignUp(login);
+                  await signUp(login);
                   notifications.show(successfulSignupNotification);
-                  setAuthToken(await SignIn(login));
+                  setAuthToken(await signIn(login));
                   setNavigationState("home");
                 } catch (ex) {
                   notifications.show(defaultErrorNotification);
@@ -143,8 +144,16 @@ function App() {
           {navigationState === "sign-in" &&
             <AuthForm type={navigationState}
               action={async (login) => {
-                setAuthToken(await SignIn(login));
-                setNavigationState("home");
+                try {
+                  setAuthToken(await signIn(login));
+                  setNavigationState("home");
+                } catch (ex: unknown) {
+                  if(ex instanceof AxiosError && ex.status === 400) {
+                    notifications.show(invalidLoginNotification);
+                  } else {
+                    notifications.show(defaultErrorNotification);
+                  }
+                }
               }} />}
           {navigationState === "home" && <HomePage />}
           {navigationState === "list-builder" && (

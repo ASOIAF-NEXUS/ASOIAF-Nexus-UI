@@ -30,12 +30,12 @@ export function AuthForm({ type, action }: { type: "sign-up" | "sign-in", action
     );
 }
 
-export async function SignUp(login: Login) {
+export async function signUp(login: Login) {
     const backend_url = import.meta.env.VITE_BACKEND_URL
     await axios.post(`${backend_url}/api/v1/users/signup`, login);
 }
 
-export async function SignIn(login: Login): Promise<string> {
+export async function signIn(login: Login): Promise<string> {
     const backend_url = import.meta.env.VITE_BACKEND_URL
     return axios.post(`${backend_url}/api/v1/users/login`, login);
 }

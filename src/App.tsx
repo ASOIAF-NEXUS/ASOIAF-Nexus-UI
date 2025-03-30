@@ -9,15 +9,17 @@ import {
   Grid,
   Group,
   Menu,
+  NavLink,
   Title,
   UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { NavLink } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import HomePage from "./HomePage";
 import AboutUs from "./AboutUs";
 import { AuthForm, SignIn, SignUp } from "./AuthForms";
 import { AuthContext } from "./AuthContext";
+import { defaultErrorNotification, successfulSignupNotification } from "./Notifications";
 
 type NavigationState =
   | "home"
@@ -36,7 +38,7 @@ function App() {
   const [navigationState, setNavigationState] =
     useState<NavigationState>("home");
   useEffect(() => {
-    if(authToken === "") {
+    if (authToken === "") {
       setUser(false);
     } else {
       setUser(true);
@@ -56,7 +58,7 @@ function App() {
         <Grid>
           <Grid.Col span={1}>
             <Group justify="start">
-            <Burger opened={navOpened} onClick={navToggle}></Burger>
+              <Burger opened={navOpened} onClick={navToggle}></Burger>
             </Group>
           </Grid.Col>
           <Grid.Col offset={4} span={2}>
@@ -126,8 +128,24 @@ function App() {
       </AppShell.Navbar>
       <AppShell.Main>
         <AuthContext.Provider value={authToken}>
-          {navigationState === "sign-up" && <AuthForm type={navigationState} action={(l) => SignUp(l).then(() => setNavigationState("sign-in"))} />}
-          {navigationState === "sign-in" && <AuthForm type={navigationState} action={(l) => SignIn(l).then(setAuthToken).then(() => setNavigationState("home"))} />}
+          {navigationState === "sign-up" &&
+            <AuthForm type={navigationState}
+              action={async (login) => {
+                try {
+                  await SignUp(login);
+                  notifications.show(successfulSignupNotification);
+                  setAuthToken(await SignIn(login));
+                  setNavigationState("home");
+                } catch (ex) {
+                  notifications.show(defaultErrorNotification);
+                }
+              }} />}
+          {navigationState === "sign-in" &&
+            <AuthForm type={navigationState}
+              action={async (login) => {
+                setAuthToken(await SignIn(login));
+                setNavigationState("home");
+              }} />}
           {navigationState === "home" && <HomePage />}
           {navigationState === "list-builder" && (
             <Title>List Builder is Under Construction</Title>

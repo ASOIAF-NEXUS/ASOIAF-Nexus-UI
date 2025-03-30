@@ -1,6 +1,5 @@
 import { Button, Paper, PasswordInput, Stack, TextInput, Title } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { notifications } from "@mantine/notifications";
 import axios from "axios";
 
 type Login = { username: string, password: string }

@@ -98,7 +98,7 @@ function ArmyDisplay({filterData}: ArmyDisplayProps) {
             })
 
             const isUnitAttachable = obj.unit && obj.unit.statistics.tray !== "solo";
-            if (obj.attachments.length < 1 && isUnitAttachable) {
+            if (obj.attachments.length <= 1 && isUnitAttachable) {
                 out.push(<AddToArmyButton
                     key={idx + 1000}
                     text="Add Attachment"

@@ -36,6 +36,12 @@
     margin-bottom: 0.5em;
     margin-top: 0.5em;
 }
+.ml-1 {
+    margin-left: 0.5em;
+}
+.ml-2 {
+    margin-left: 0.75em;
+}
 .ml-auto {
     margin-left: auto;
 }

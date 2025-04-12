@@ -86,7 +86,7 @@ function HoverWrapper({children, hoverContent, alternateContent, defaultSize, wi
                     permanent,
                     left: permanent ? prevState.left : getLeft(evt.x, prevState),
                     top: permanent ? prevState.top : getTop(evt.y, prevState),
-                    z: getNextZIndex(),
+                    z: permanent ? prevState.z : getNextZIndex(),
                 }
             });
         }, {signal});
@@ -188,26 +188,30 @@ function HoverWindow({children, hoverState, setHoverState, windowTitle}: HoverWi
         return (evt: MouseEvent) => {
             const dragNorth = () => {
                 setHoverState(prevState => {
-                    const newH = Math.max(100, hoverState.top + hoverState.height + hoverState.offset - evt.clientY);
-                    return {...prevState, height: newH, top: evt.clientY - hoverState.offset}
+                    const newH = hoverState.top + hoverState.height - evt.clientY;
+                    if (newH < 100) return {...prevState}
+                    return {...prevState, height: newH, top: evt.clientY}
                 });
             }
             const dragSouth = () => {
                 setHoverState(prevState => {
-                    const newH = Math.max(100, evt.clientY - hoverState.top - hoverState.offset);
+                    const newH = evt.clientY - hoverState.top;
+                    if (newH < 100) return {...prevState}
                     return {...prevState, height: newH}
                 });
             }
             const dragEast = () => {
                 setHoverState(prevState => {
-                    const newW = Math.max(100, evt.clientX - hoverState.left - hoverState.offset);
+                    const newW = evt.clientX - hoverState.left;
+                    if (newW < 150) return {...prevState}
                     return {...prevState, width: newW}
                 });
             }
             const dragWest = () => {
                 setHoverState(prevState => {
-                    const newW = Math.max(100, hoverState.left + hoverState.width + hoverState.offset - evt.clientX);
-                    return {...prevState, width: newW, left: evt.clientX - hoverState.offset}
+                    const newW = hoverState.left + hoverState.width - evt.clientX;
+                    if (newW < 150) return {...prevState}
+                    return {...prevState, width: newW, left: evt.clientX}
                 });
             }
 

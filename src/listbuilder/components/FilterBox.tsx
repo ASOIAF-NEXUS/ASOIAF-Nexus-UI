@@ -8,7 +8,7 @@ import {
     ButtonGroup,
     Modal,
     ScrollArea,
-    Flex,
+    Flex, Text,
 } from "@mantine/core";
 import {useDisclosure} from "@mantine/hooks";
 import {FilterData} from "../filter.tsx"
@@ -27,12 +27,16 @@ function FilterModal({isOpen, onClose, dataFilter}: FilterModalProps) {
     return <Modal
         opened={isOpen}
         onClose={onClose}
-        title="Filter"
+        title={<Text fw={600}>Filter</Text>}
         centered size="70%"
         scrollAreaComponent={ScrollArea.Autosize}
         overlayProps={{blur: 1}}
+        zIndex={2000}
     >
         {dataFilter.filters.map(filter => filter.getRenderedModalRow(filterState, setFilterState))}
+        <Flex justify="center" align="center" gap={5}>
+            <Button variant="light" color="green" onClick={onClose}>OK</Button>
+        </Flex>
     </Modal>
 }
 

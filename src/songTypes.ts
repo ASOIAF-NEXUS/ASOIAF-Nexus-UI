@@ -78,6 +78,12 @@ export interface SongData {
     _fullName: string
     _prop: "unknown" | "units" | "attachments" | "ncus" | "tactics" | "specials"
     _roleBuilder: BuilderRoles
+    _fTray?: string
+    _fToHit?: string[]
+    _fAttackDice?: string[]
+    _fAttackTypes?: string[]
+    _fAbilities?: string[]
+    _fCharacter?: string[]
 }
 
 export enum BuilderRoles {
@@ -87,6 +93,11 @@ export enum BuilderRoles {
     attachment = "Attachment",
     enemy = "Enemy Attachment",
     none = "None",
+}
+
+export enum FilterCharCmdr {
+    char = "Is a Character",
+    cmdr = "Is a Commander",
 }
 
 // The ids might be in a wrong order, creating an invalid list!

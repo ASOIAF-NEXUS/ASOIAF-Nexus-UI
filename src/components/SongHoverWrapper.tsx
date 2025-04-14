@@ -9,8 +9,8 @@ interface SongHoverWrapperProps {
 }
 
 function SongHoverWrapper({children, entity}: SongHoverWrapperProps) {
-    const imageSrc = `https://raw.githubusercontent.com/Pf2eTools/asoiaf-tmg-data/refs/heads/master/generated/en/${entity.statistics.faction}/${entity.id}.jpg`;
-    const imageBackSrc = `https://raw.githubusercontent.com/Pf2eTools/asoiaf-tmg-data/refs/heads/master/generated/en/${entity.statistics.faction}/${entity.id}b.jpg`;
+    const imageSrc = `./img/${entity.id}x1.webp`;
+    const imageBackSrc = `./img/${entity.id}bx1.webp`;
     const defaultSize = entity._prop === "units" ? {w: 600, h: 369} : {w: 300, h: 439}
 
     const getImage = (src: string) => {

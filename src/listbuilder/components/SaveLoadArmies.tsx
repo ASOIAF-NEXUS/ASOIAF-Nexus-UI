@@ -27,8 +27,8 @@ function LoadModal({savedArmies, setSavedArmies, data}: LoadModalProps) {
 
     const getTableRow = (army: SavableArmyData) => {
         const armyData = armyIdsToArmyData(army.army, data);
-        const factionImageSrc = `https://raw.githubusercontent.com/Pf2eTools/asoiaf-tmg-data/refs/heads/master/assets/warcouncil/${armyData.faction}/crest-shadow.png`;
-        const getCmdrImgSrc = (commander: SongData) => `https://raw.githubusercontent.com/Pf2eTools/asoiaf-tmg-data/refs/heads/master/portraits/square/${commander.id}.jpg`;
+        const factionImageSrc = `./img/crest-${armyData.faction}.png`;
+        const getCmdrImgSrc = (commander: SongData) => `./img/${commander.id}p.webp`;
 
         return <Table.Tr key={army.id}>
             <Table.Td></Table.Td>

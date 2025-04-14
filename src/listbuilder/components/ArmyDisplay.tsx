@@ -8,7 +8,7 @@ import SongHoverWrapper from "../../components/SongHoverWrapper.tsx";
 
 
 function UnitCard({songObj, onClickDelete}: { songObj: SongData, onClickDelete: () => void }) {
-    const imgSrc = `https://raw.githubusercontent.com/Pf2eTools/asoiaf-tmg-data/refs/heads/master/portraits/square/${songObj.id}.jpg`;
+    const imgSrc = `./img/${songObj.id}p.webp`;
     const attachmentClass = songObj._prop === "attachments" && !songObj.statistics.enemy ? "card--attachment" : ""
     return <div className={"flex card " + attachmentClass}>
         <SongHoverWrapper entity={songObj}>

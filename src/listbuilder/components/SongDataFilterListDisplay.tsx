@@ -48,7 +48,7 @@ function FilterListTextDisplay({displayData}: ListDisplayProps) {
 }
 
 function DisplayCard({entity}: { entity: SongData }) {
-    const src = `https://raw.githubusercontent.com/Pf2eTools/asoiaf-tmg-data/refs/heads/master/generated/en/${entity.statistics.faction}/${entity.id}.jpg`;
+    const src = `./img/${entity.id}x1.webp`;
     const {addToArmy} = useContext(ArmyContext);
 
     return <>

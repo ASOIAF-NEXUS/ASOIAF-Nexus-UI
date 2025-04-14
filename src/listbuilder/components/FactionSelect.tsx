@@ -36,7 +36,7 @@ function FactionSelect({filterData}: FactionSelectOpts) {
     }
 
     const renderBtn = (faction: FACTIONS) => {
-        const src = `https://raw.githubusercontent.com/Pf2eTools/asoiaf-tmg-data/refs/heads/master/assets/warcouncil/${faction}/crest-shadow.png`;
+        const src = `./img/crest-${faction}.png`;
         return <Button
             key={faction}
             style={{padding: 5, margin: 5}}
@@ -57,7 +57,7 @@ function FactionSelect({filterData}: FactionSelectOpts) {
                         h="100%"
                         w="auto"
                         fit="contain"
-                        src={`https://raw.githubusercontent.com/Pf2eTools/asoiaf-tmg-data/refs/heads/master/assets/warcouncil/${armyData.faction}/crest-shadow.png`}>
+                        src={`./img/crest-${armyData.faction}.png`}>
                     </Image>
                 </Button>
             </Popover.Target>

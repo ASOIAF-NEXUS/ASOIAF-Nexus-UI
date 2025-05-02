@@ -2,44 +2,48 @@ import {Button, Flex, Modal} from "@mantine/core";
 import {useDisclosure} from "@mantine/hooks";
 import {useState} from "react";
 
-interface useConfirmOptions {
-    title: string
-    message: string
-    onOpen?: () => void
-    onClose?: () => void
-}
-
-export interface confirmHandlers {
+export interface useConfirmHandlers {
     onConfirm?: () => void
     onCancel?: () => void
+    onOpenModal?: () => void
+    onCloseModal?: () => void
+}
+interface askConfirmOptions {
+    onConfirm?: () => void
+    onCancel?: () => void
+    onOpenModal?: () => void
+    onCloseModal?: () => void
+    title?: string
+    message?: string
 }
 
-function useConfirm({title, message, onOpen, onClose}: useConfirmOptions) {
+function useConfirm() {
     const [opened, {open, close}] = useDisclosure(false);
-    const [handlers, setHandlers] = useState({} as confirmHandlers);
+    const [handlers, setHandlers] = useState({} as useConfirmHandlers);
+    const [modalTitle, setModalTitle] = useState("Are you sure?");
+    const [modalMessage, setModalMessage] = useState("");
 
-    const doOpen = () => {
-        open();
-        if (onOpen) onOpen();
-    }
     const doClose = () => {
         close();
-        if (onClose) onClose();
+        if (handlers.onCloseModal) handlers.onCloseModal();
     }
 
-    const askConfirm = (_handlers: confirmHandlers) => {
-        setHandlers(_handlers);
-        doOpen();
+    const askConfirm = ({onOpenModal, onCloseModal, onConfirm, onCancel, message, title}: askConfirmOptions) => {
+        setHandlers({onConfirm, onCancel, onOpenModal, onCloseModal});
+        if (title) setModalTitle(title);
+        if (message) setModalMessage(message);
+        if (onOpenModal) onOpenModal();
+        open();
     }
 
     const ConfirmModal = () => <Modal
         opened={opened}
         onClose={doClose}
-        title={title}
+        title={modalTitle}
         withCloseButton={false}
         size="30%"
     >
-        <Flex className="m-1 my-0">{message}</Flex>
+        {modalMessage ? <Flex className="m-1 my-0">{modalMessage}</Flex> : null}
         <Flex justify="center" align="center">
             <Button
                 className="m-1"

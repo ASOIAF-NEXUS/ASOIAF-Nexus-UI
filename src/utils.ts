@@ -5,6 +5,7 @@ const TITLE_LOWER_WORDS_RE = TITLE_LOWER_WORDS.map(it => new RegExp(`\\s${it}\\s
 declare global {
     interface String {
         toTitleCase(): string
+
         uppercaseFirst(): string
     }
 }
@@ -42,17 +43,20 @@ export function clamp(num: number, min: number, max: number) {
 
 
 export class SortUtil {
-    static ascSortNumbers (a: number, b: number) {
+    static ascSortNumbers(a: number, b: number) {
+        if (isNaN(a) && isNaN(b)) return 0;
+        else if (isNaN(a)) return -1;
+        else if (isNaN(b)) return 1;
         return a - b;
     }
 
-    static ascSort (a: string, b: string) {
+    static ascSort(a: string, b: string) {
         if (a < b) return -1;
-        else if (b > a) return 1;
+        else if (b < a) return 1;
         return 0;
     }
 
-    static ascSortLower (a: string, b: string) {
+    static ascSortLower(a: string, b: string) {
         return SortUtil.ascSort(a.toLowerCase(), b.toLowerCase());
     }
 }

@@ -6,9 +6,9 @@ import FilterBox from "./FilterBox.tsx"
 import ArmyDisplay from "./ArmyDisplay.tsx";
 import FilterContextProvider from "./FilterContextProvider.tsx";
 import FactionSelect from "./FactionSelect.tsx";
-import {ArmyListIDs, defaultArmyFormat, defaultArmySize, FACTIONS, SongData} from "../../songTypes.ts";
+import {defaultArmyIds, SongData} from "../../songTypes.ts";
 import "../../utils.ts"
-import {Flex} from "@mantine/core";
+import {ButtonGroup, Flex} from "@mantine/core";
 import ArmyContextProvider from "./ArmyContextProvider.tsx";
 import SongDataFilterListDisplay from "./SongDataFilterListDisplay.tsx";
 import HoverContextProvider from "../../components/HoverContextProvider.tsx";
@@ -17,27 +17,20 @@ import FormatSelect from "./FormatSelect.tsx";
 import SaveLoadControls from "./SaveLoadArmies.tsx";
 import ImportArmyButton from "./ImportArmyButton.tsx";
 import ExportArmyButton from "./ExportArmyButton.tsx";
+import {ArmyValidator} from "../ArmyValidator.ts";
 
-
-const data = dataLoader.load().filter(d => d._prop != "tactics" && d._prop != "specials");
-const filterSongData = new FilterSongData();
+const allData = dataLoader.load();
+const data = allData.filter(d => d._prop != "tactics" && d._prop != "specials");
+// const extraData = allData.filter(d => d._prop === "tactics" || d._prop === "specials");
+const armyValidator = new ArmyValidator({data});
+const filterSongData = new FilterSongData({validator: armyValidator});
 data.forEach(item => filterSongData.addToFilters(item));
 
-const defaultArmyData: ArmyListIDs = {
-    faction: FACTIONS.greyjoy,
-    ids: [],
-    points: defaultArmySize,
-    format: defaultArmyFormat,
-}
-
 function ListBuilder() {
-    const defaultFilterStates = filterSongData.defaultFilterStates;
-    defaultFilterStates[filterSongData.factionFilter.getFilterStateHash(defaultArmyData.faction)] = 1;
-
     return <>
         <HoverContextProvider>
-            <FilterContextProvider defaultFilterStates={defaultFilterStates}>
-                <ArmyContextProvider defaultArmyData={defaultArmyData} data={data}>
+            <FilterContextProvider defaultFilterStates={filterSongData.defaultFilterStates}>
+                <ArmyContextProvider defaultArmyIDs={defaultArmyIds} data={data} validator={armyValidator}>
                     <Flex gap="xl" direction="row" className="h-100">
                         <Flex className="h-100 w-60" direction="column">
                             <FilterBox<SongData>
@@ -51,9 +44,13 @@ function ListBuilder() {
                                 <FactionSelect filterData={filterSongData}></FactionSelect>
                                 <ArmySizeSelect />
                                 <FormatSelect />
-                                <SaveLoadControls data={data}/>
-                                <ImportArmyButton />
-                                <ExportArmyButton />
+                                <ButtonGroup>
+                                    <SaveLoadControls data={data}/>
+                                </ButtonGroup>
+                                <ButtonGroup>
+                                    <ImportArmyButton />
+                                    <ExportArmyButton />
+                                </ButtonGroup>
                             </Flex>
                             <ArmyDisplay
                                 filterData={filterSongData}

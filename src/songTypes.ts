@@ -16,10 +16,14 @@ export enum FACTIONS {
 
 function getRenderedFaction(faction: FACTIONS) {
     switch (faction) {
-        case FACTIONS.freefolk: return "Free Folk";
-        case FACTIONS.nightswatch: return "Night's Watch";
-        case FACTIONS.brotherhood: return "Brotherhood without Banners";
-        default: return faction.toTitleCase();
+        case FACTIONS.freefolk:
+            return "Free Folk";
+        case FACTIONS.nightswatch:
+            return "Night's Watch";
+        case FACTIONS.brotherhood:
+            return "Brotherhood without Banners";
+        default:
+            return faction.toTitleCase();
     }
 }
 
@@ -107,28 +111,63 @@ export interface ArmyListIDs {
     points: number
     format: string
 }
+
 export interface ArmyListData {
     faction: FACTIONS
     commander: SongData | undefined
-    unit: {unit: null | SongData, attachments: SongData[]}[]
+    unit: { unit: null | SongData, attachments: SongData[] }[]
     ncu: SongData[]
     enemy: SongData[]
     points: number
     format: string
 }
+
 export const defaultArmySize = 40;
 export const defaultArmyFormat = "standard";
 
+export const defaultArmyIds: ArmyListIDs = {
+    faction: FACTIONS.greyjoy,
+    ids: [],
+    points: defaultArmySize,
+    format: defaultArmyFormat,
+}
+export const defaultArmyData: ArmyListData = {
+    faction: FACTIONS.greyjoy,
+    commander: undefined,
+    unit: [],
+    ncu: [],
+    enemy: [],
+    points: defaultArmySize,
+    format: defaultArmyFormat,
+}
+
 export type T_armyFormat = {
+    id: string
     name: string
     description: string
 }
 
 export const FORMATS: Dictionary<T_armyFormat> = {
-    standard: {name: "Standard", description: "The rules described in the official rulebook."},
-    decisive: {name: "Decisive Encounters", description: "Armies may include a few attachments for free."},
-    draft: {name: "Draft", description: "Build from a drafted pool, but with fewer restrictions."},
-    milestone: {name: "Milestone", description: "Armies change over the course of campaigns."},
+    standard: {
+        name: "Standard",
+        id: "standard",
+        description: "The rules described in the official rulebook."
+    },
+    classic: {
+        name: "Classic",
+        id: "classic",
+        description: "Armies without extra points for attachments."
+    },
+    draft: {
+        name: "Draft",
+        id: "draft",
+        description: "Build from a drafted pool, but with fewer restrictions."
+    },
+    milestone: {
+        name: "Milestone",
+        id: "milestone",
+        description: "Armies change over the course of campaigns."
+    },
 }
 
 
@@ -197,7 +236,6 @@ export function* iterateArmyData(armyData: ArmyListData) {
     for (const enemy of armyData.enemy) {
         yield enemy;
     }
-    return armyData;
 }
 
 export function armyToTTS(army: ArmyListData) {

@@ -1,44 +1,78 @@
-import {SongData} from "../../songTypes.ts";
+import {BuilderRoles, SongData} from "../../songTypes.ts";
 import {useContext, useState} from "react";
 import ArmyContext from "../ArmyContext.ts";
-import {Button, Flex, Grid, Image, ScrollArea, Switch, Table} from "@mantine/core";
+import {Button, Flex, Grid, Image, Overlay, ScrollArea, Switch, Table, Text, Tooltip} from "@mantine/core";
 import SongHoverWrapper from "../../components/SongHoverWrapper.tsx";
+import {SortUtil} from "../../utils.ts";
 
 interface ListDisplayProps {
     displayData: SongData[],
 }
 
 function FilterListTextDisplay({displayData}: ListDisplayProps) {
-    const {addToArmy} = useContext(ArmyContext);
+    const {addToArmy, armyValidator, allowIllegal} = useContext(ArmyContext);
+    const [sortMeta, setSortMeta] = useState({by: "Name", dir: 0})
 
-    const tableRows = displayData.sort((a, b) => {
-        if (a._roleBuilder < b._roleBuilder) return -1;
-        else if (a._roleBuilder > b._roleBuilder) return 1;
+    const sortData = (a: SongData, b: SongData) => {
+        const l = sortMeta.dir === 0 ? a : b;
+        const r = sortMeta.dir === 0 ? b : a;
+        const byName = SortUtil.ascSortLower(l._fullName, r._fullName);
+        if (sortMeta.by === "Name") return byName;
+        if (sortMeta.by === "Legal") return SortUtil.ascSortNumbers(armyValidator.getEntityReasonsIllegal(l).length, armyValidator.getEntityReasonsIllegal(r).length)
+            || SortUtil.ascSortNumbers(armyValidator.getEntityReasonsIllegalSlot(l).length, armyValidator.getEntityReasonsIllegalSlot(r).length)
+            || byName;
+        if (sortMeta.by === "Faction") return SortUtil.ascSort(l.statistics.faction, r.statistics.faction) || byName;
+        if (sortMeta.by === "Type") return SortUtil.ascSort(l._roleBuilder, r._roleBuilder) || byName;
+        if (sortMeta.by === "Cost") return SortUtil.ascSortNumbers(Number(l.statistics.cost), Number(r.statistics.cost)) || byName;
         return 0;
-    }).map((entity) => (
-        <SongHoverWrapper key={entity.id} entity={entity}><Table.Tr>
-            <Table.Td>{entity._fullName}</Table.Td>
+    }
+    const tableRows = displayData.sort(sortData).map((entity) => {
+        const legality = armyValidator.getEntityReasonsIllegal(entity);
+        const slotLegality = armyValidator.getEntityReasonsIllegalSlot(entity);
+        return <Table.Tr key={entity.id}>
+            <SongHoverWrapper entity={entity}><Table.Td>{entity._fullName}</Table.Td></SongHoverWrapper>
             <Table.Td>{entity.statistics.faction}</Table.Td>
             <Table.Td>{entity._roleBuilder}</Table.Td>
             <Table.Td>{entity.statistics.cost}</Table.Td>
             <Table.Td>
+                {legality.length === 0 && slotLegality.length === 0
+                    ? "Yes"
+                    : legality.length === 0
+                        ? <Tooltip label={slotLegality[0]}><Text>Yes*</Text></Tooltip>
+                        : <Tooltip label={legality[0]}><Text>⚠</Text></Tooltip>
+                }
+            </Table.Td>
+            <Table.Td>
                 <Button
                     size="xs"
                     variant="light"
+                    disabled={legality.length !== 0 && !allowIllegal}
                     onClick={() => addToArmy(entity)}
                 >Add</Button>
             </Table.Td>
-        </Table.Tr></SongHoverWrapper>
-    ));
+        </Table.Tr>
+    });
+
+    const onClickHeader = (title: string) => {
+        setSortMeta(prevState => {
+            const newState = {by: title, dir: 0}
+            if (prevState.by === title) newState.dir = (prevState.dir + 1) % 2
+            return newState;
+        })
+    }
+    const renderTableHeader = (title: string) => {
+        return <Table.Th onClick={() => onClickHeader(title)} key={title}>
+            <Button size="compact-sm" color="dark" variant="subtle" className="mx-0">
+                <Text fw={700}>{title}{sortMeta.by === title ? sortMeta.dir === 0 ? " ↓" : " ↑" : ""}</Text>
+            </Button>
+        </Table.Th>
+    }
 
     return <ScrollArea scrollbars="y" offsetScrollbars>
-        <Table striped>
+        <Table striped stickyHeader highlightOnHover>
             <Table.Thead>
                 <Table.Tr>
-                    <Table.Th>Name</Table.Th>
-                    <Table.Th>Faction</Table.Th>
-                    <Table.Th>Type</Table.Th>
-                    <Table.Th>Cost</Table.Th>
+                    {["Name", "Faction", "Type", "Cost", "Legal"].map(renderTableHeader)}
                     <Table.Th>Add</Table.Th>
                 </Table.Tr>
             </Table.Thead>
@@ -49,27 +83,99 @@ function FilterListTextDisplay({displayData}: ListDisplayProps) {
 
 function DisplayCard({entity}: { entity: SongData }) {
     const src = `./img/${entity.id}x1.webp`;
-    const {addToArmy} = useContext(ArmyContext);
+    const {addToArmy, armyValidator, allowIllegal} = useContext(ArmyContext);
+    const legality = armyValidator.getEntityReasonsIllegal(entity);
+    const slotLegality = armyValidator.getEntityReasonsIllegalSlot(entity);
+    const isLegal = legality.length === 0;
 
-    return <>
+    if (isLegal && slotLegality.length === 0) return <>
         <Image className="pointer" src={src} onClick={() => addToArmy(entity)}></Image>
         <p className="my-0">
             <b>{entity._fullName}</b>{` (${entity.statistics.cost})`}
         </p>
     </>
+
+    const color = isLegal ? "#f7d931" : "#900";
+    const reason = isLegal ? `Warning: ${slotLegality.join(", ")}` : `Illegal: ${legality.join(", ")}`;
+
+    return <>
+        <Tooltip label={reason}>
+            <div style={{position: "relative"}}>
+                <Image className="pointer" src={src}></Image>
+                <Overlay color={color} backgroundOpacity={0.35} onClick={allowIllegal || isLegal ? () => addToArmy(entity) : undefined}/>
+            </div>
+        </Tooltip>
+        <Text c={legality.length === 0 ? "yellow.8" : "red.9"} className="my-0">
+            <b>{entity._fullName}</b>{` (${entity.statistics.cost})`}
+        </Text>
+    </>
+}
+
+function ImageDisplayCategory({category, entities}: { category: string, entities: SongData[] }) {
+    const [isHidden, setIsHidden] = useState(false);
+    const {armyValidator} = useContext(ArmyContext);
+
+    const sortListDisplay = (a: SongData, b: SongData) => {
+        const legal = SortUtil.ascSortNumbers(armyValidator.getEntityReasonsIllegal(a).length, armyValidator.getEntityReasonsIllegal(b).length)
+        const slotLegal = SortUtil.ascSortNumbers(armyValidator.getEntityReasonsIllegalSlot(a).length, armyValidator.getEntityReasonsIllegalSlot(b).length)
+        const faction = SortUtil.ascSortLower(a.statistics.faction, b.statistics.faction)
+        const cost = SortUtil.ascSortNumbers(Number(a.statistics.cost), Number(b.statistics.cost))
+        const name = SortUtil.ascSortLower(a._fullName, b._fullName)
+        return legal || slotLegal || faction || cost || name;
+    }
+
+    const renderHeader = (role: string) => {
+        return <Grid.Col
+            key={role}
+            span={12}
+            onClick={() => setIsHidden(prev => !prev)}
+        >
+            <Flex pos="relative">
+                <Text fw={700} size="lg" className="mx-1">{role}s</Text>
+                <Image  src={isHidden ? "icon/hide.png" : "icon/show.png"} className="ml-1"></Image>
+                <Overlay
+                    gradient="linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 100%)"
+                    opacity={0.85}
+                    radius="md"
+                />
+            </Flex>
+        </Grid.Col>
+    }
+
+    if (entities.length === 0) {
+        if (isHidden) setIsHidden(false);
+        return null;
+    }
+
+    return <>
+        {renderHeader(category)}
+        {isHidden
+            ? null
+            : entities.sort(sortListDisplay).map(ent => {
+                return <Grid.Col key={ent.id} span={ent._prop === "units" ? 6 : 3}>
+                    <DisplayCard entity={ent}></DisplayCard>
+                </Grid.Col>;
+            })
+        }
+    </>
 }
 
 function FilterListImageDisplay({displayData}: ListDisplayProps) {
+    const byCategory = {
+        [BuilderRoles.commander]: displayData.filter(sd => sd._roleBuilder === BuilderRoles.commander),
+        [BuilderRoles.unit]: displayData.filter(sd => sd._roleBuilder === BuilderRoles.unit),
+        [BuilderRoles.attachment]: displayData.filter(sd => sd._roleBuilder === BuilderRoles.attachment),
+        [BuilderRoles.ncu]: displayData.filter(sd => sd._roleBuilder === BuilderRoles.ncu),
+        [BuilderRoles.enemy]: displayData.filter(sd => sd._roleBuilder === BuilderRoles.enemy),
+    }
+    const isNoItemDisplayed = Object.values(byCategory).every(arr => arr.length === 0);
+
     return <ScrollArea scrollbars="y" offsetScrollbars>
         <Grid>
-            {displayData.map(it => <Grid.Col
-                key={it.id}
-                span={it._prop === "units" ? 6 : 3}>
-                <DisplayCard
-                    key={it.id}
-                    entity={it}
-                ></DisplayCard>
-            </Grid.Col>)}
+            {Object.entries(byCategory).map(([category, entities]) => <ImageDisplayCategory key={category} category={category} entities={entities}></ImageDisplayCategory>)}
+            {isNoItemDisplayed
+                ? <Grid.Col span={12}><Text ta="center" fw={700}>No items to display! Widen your search...</Text></Grid.Col>
+                : null}
         </Grid>
     </ScrollArea>
 }

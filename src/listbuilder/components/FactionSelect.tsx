@@ -4,7 +4,6 @@ import FilterContext from "../FilterContext.ts";
 import ArmyContext from "../ArmyContext.ts";
 import {FilterSongData} from "../filter.tsx";
 import {FACTIONS} from "../../songTypes.ts";
-import useConfirm from "../../hooks/useConfirm.tsx";
 
 
 interface FactionSelectOpts {
@@ -13,25 +12,13 @@ interface FactionSelectOpts {
 
 function FactionSelect({filterData}: FactionSelectOpts) {
     const {setFilterState} = useContext(FilterContext);
-    const {armyData, setArmyFaction} = useContext(ArmyContext);
-    const {ConfirmModal, askConfirm} = useConfirm({
-        title: "Are you sure?",
-        message: "Selecting a new faction will wipe your army!",
-        onOpen: () => setOpenedPopover(false),
-    });
+    const {armyData, confirmSetArmyFaction, ConfirmModal} = useContext(ArmyContext);
     const [openedPopover, setOpenedPopover] = useState(false);
 
     const onChange = (faction: FACTIONS) => {
-        setArmyFaction(faction, {
-            askConfirm,
-            onConfirm: () => {
-                setFilterState(() => {
-                    const newState = filterData.defaultFilterStates;
-                    const factionFilter = filterData.factionFilter;
-                    newState[factionFilter.getFilterStateHash(faction)] = 1;
-                    return newState;
-                });
-            }
+        confirmSetArmyFaction(faction, {
+            onOpenModal: () => setOpenedPopover(false),
+            onConfirm: () => setFilterState(filterData.defaultFilterStates),
         });
     }
 

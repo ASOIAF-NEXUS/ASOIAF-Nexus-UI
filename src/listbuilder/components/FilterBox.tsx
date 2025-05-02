@@ -13,6 +13,7 @@ import {
 import {useDisclosure} from "@mantine/hooks";
 import {FilterData} from "../filter.tsx"
 import FilterContext from "../FilterContext.ts";
+import ArmyContext from "../ArmyContext.ts";
 
 
 interface FilterModalProps {
@@ -57,12 +58,14 @@ interface FilterBoxProps<T> {
 
 function FilterBox<T>({data, filterData, FilterListDisplay}: FilterBoxProps<T>) {
     const {filterState, setFilterState} = useContext(FilterContext);
+    // FIXME: This is bad architecture. Shouldn't use ArmyContext here
+    const armyContext = useContext(ArmyContext);
     const [searchText, setSearchText] = useState("");
     const [isFilterModalOpen, {open: doOpenFilterModal, close: doCloseFilterModal}] = useDisclosure(false);
 
     const filteredData = useMemo(() => {
         return data.filter(ent => filterData.doFilterEntity(ent, filterState));
-    }, [filterData, data, filterState]);
+    }, [filterData, data, filterState, armyContext]);
     const filteredSearchedData = useMemo(() => {
         if (searchText === "") return filteredData;
         return filteredData.filter(item => getSearchText(item).toLowerCase().includes(searchText.toLowerCase()));
@@ -95,9 +98,14 @@ function FilterBox<T>({data, filterData, FilterListDisplay}: FilterBoxProps<T>) 
                 onClick={() => setFilterState(filterData.defaultFilterStates)}
             >Reset</Button>
         </ButtonGroup>
-        <PillGroup className="mx-1">
-            {filterData.filters.map(filter => filter.getRenderedMiniPills(filterState, setFilterState))}
-        </PillGroup>
+        <Flex direction="column" gap={5} className="mx-1">
+            <PillGroup>
+                {filterData.filters.map(filter => filter.getRenderedPermanentMiniPills(filterState, setFilterState))}
+            </PillGroup>
+            <PillGroup>
+                {filterData.filters.map(filter => filter.getRenderedMiniPills(filterState, setFilterState))}
+            </PillGroup>
+        </Flex>
         <FilterListDisplay displayData={filteredSearchedData}></FilterListDisplay>
     </Flex>
 }

@@ -1,11 +1,11 @@
 import {Dictionary, SortUtil} from "../utils.ts";
-import {FilterCharCmdr, SongData} from "../songTypes.ts";
+import {BuilderRoles, FACTIONS, FilterCharCmdr, SongData} from "../songTypes.ts";
 import {
     Button,
     ButtonGroup,
     Combobox,
     Divider,
-    Flex,
+    Flex, Image,
     Input, InputBase,
     PillGroup,
     Text,
@@ -13,6 +13,7 @@ import {
 } from "@mantine/core";
 import * as React from "react";
 import {useState} from "react";
+import {ArmyValidator} from "./ArmyValidator.ts";
 
 
 type T_FilterItemValue = string | number;
@@ -86,6 +87,8 @@ export abstract class FilterBase {
     abstract getRenderedModalRow(filterState: T_FilterState, setFilterState: T_setFilterState): React.ReactElement
 
     abstract getRenderedMiniPills(filterState: T_FilterState, setFilterState: T_setFilterState): React.ReactElement[]
+
+    abstract getRenderedPermanentMiniPills(filterState: T_FilterState, setFilterState: T_setFilterState): React.ReactElement[]
 }
 
 
@@ -98,7 +101,9 @@ interface FilterOpts<EntityType> {
     allowedStates?: number[]
     itemRenderFn?: (fi: FilterItem) => React.ReactNode
     itemRenderFnMini?: (fi: FilterItem) => React.ReactNode
+    itemRenderFnPermanent?: (fi: FilterItem) => React.ReactNode
     displayPillFn?: (fi: FilterItem, fs: T_FilterState) => boolean
+    permanentPillFn?: (fi: FilterItem) => boolean
 }
 
 export class Filter<EntityType> extends FilterBase {
@@ -108,7 +113,9 @@ export class Filter<EntityType> extends FilterBase {
     protected readonly _itemSortFn: ((a: FilterItem, b: FilterItem) => number) | undefined
     protected readonly _itemRenderFn: (fi: FilterItem) => React.ReactNode
     protected readonly _itemRenderFnMini: (fi: FilterItem) => React.ReactNode
+    protected readonly _itemRenderFnPermanent: (fi: FilterItem) => React.ReactNode
     protected readonly _isDisplayPill: (fi: FilterItem, fs: T_FilterState) => boolean
+    protected readonly _isPermanentPill: (fi: FilterItem) => boolean
     protected readonly _getFilterValues: (entity: EntityType) => T_FilterValues
 
     constructor({
@@ -120,7 +127,9 @@ export class Filter<EntityType> extends FilterBase {
                     allowedStates,
                     itemRenderFn,
                     itemRenderFnMini,
-                    displayPillFn
+                    itemRenderFnPermanent,
+                    displayPillFn,
+                    permanentPillFn,
                 }: FilterOpts<EntityType>) {
 
         super({header, allowedStates});
@@ -153,6 +162,15 @@ export class Filter<EntityType> extends FilterBase {
         this._isDisplayPill = typeof displayPillFn === "function"
             ? displayPillFn
             : (fi, fs) => fs[this.getFilterStateHash(fi)] != 0;
+
+        this._isPermanentPill = typeof permanentPillFn === "function"
+            ? permanentPillFn
+            : () => false;
+
+        this._itemRenderFnPermanent = typeof itemRenderFnPermanent === "function"
+            ? itemRenderFnPermanent
+            : fi => fi.hash.toTitleCase();
+
     }
 
     get defaultFilterState() {
@@ -203,7 +221,7 @@ export class Filter<EntityType> extends FilterBase {
         return display && !hide;
     }
 
-    protected get _sortedItems () {
+    protected get _sortedItems() {
         return [...this._items].sort(this._itemSortFn);
     }
 
@@ -288,7 +306,7 @@ export class Filter<EntityType> extends FilterBase {
     }
 
     protected _getRenderedMiniPill(filterState: T_FilterState, filterItem: FilterItem, setFilterState: T_setFilterState) {
-        if (!this._isDisplayPill(filterItem, filterState)) return null;
+        if (!this._isDisplayPill(filterItem, filterState) || this._isPermanentPill(filterItem)) return null;
 
         const stateHash = this.getFilterStateHash(filterItem);
         const fs = filterState[stateHash];
@@ -310,6 +328,32 @@ export class Filter<EntityType> extends FilterBase {
     getRenderedMiniPills(filterState: T_FilterState, setFilterState: T_setFilterState) {
         return this._sortedItems.map(fi => this._getRenderedMiniPill(filterState, fi, setFilterState)).filter(e => e !== null);
     }
+
+    protected _getRenderedPermanentMiniPill(filterState: T_FilterState, filterItem: FilterItem, setFilterState: T_setFilterState) {
+        if (!this._isPermanentPill(filterItem)) return null;
+
+        const stateHash = this.getFilterStateHash(filterItem);
+        const fs = filterState[stateHash];
+
+        return <Button
+            key={stateHash}
+            size="md"
+            radius="sm"
+            h={40}
+            w={40}
+            px={5}
+            color={fs === 0 ? "gray.5" : fs === 1 ? "blue.4" : "red.4"}
+            variant="filled"
+            onClick={() => this._onClickFilterPill(setFilterState, filterItem)}
+        >
+            {this._itemRenderFnPermanent(filterItem)}
+        </Button>
+    }
+
+    getRenderedPermanentMiniPills(filterState: T_FilterState, setFilterState: T_setFilterState) {
+        return this._sortedItems.map(fi => this._getRenderedPermanentMiniPill(filterState, fi, setFilterState)).filter(e => e !== null);
+    }
+
 }
 
 
@@ -390,7 +434,12 @@ export class MultiFilter extends FilterBase {
     getRenderedMiniPills(filterState: T_FilterState, setFilterState: T_setFilterState) {
         return this._filters.map(f => f.getRenderedMiniPills(filterState, setFilterState)).flat();
     }
+
+    getRenderedPermanentMiniPills(filterState: T_FilterState, setFilterState: T_setFilterState) {
+        return this._filters.map(f => f.getRenderedPermanentMiniPills(filterState, setFilterState)).flat();
+    }
 }
+
 
 interface SearchableFilterOps<EntityType> {
     header: string
@@ -438,7 +487,8 @@ export class SearchableFilter<EntityType> extends Filter<EntityType> {
             <PillGroup>
                 {this._getRenderedFilterPills(filterState, setFilterState)}
             </PillGroup>
-            <SearchableFilterSearchInput filterItems={this._sortedItems} addPill={addFilterState}></SearchableFilterSearchInput>
+            <SearchableFilterSearchInput filterItems={this._sortedItems}
+                                         addPill={addFilterState}></SearchableFilterSearchInput>
             <Divider className="m-1 mx-0"></Divider>
         </div>
     }
@@ -473,6 +523,7 @@ interface SearchableFilterSearchInputProps {
     filterItems: FilterItem[]
     addPill: (fi: FilterItem, state: number) => void
 }
+
 // eslint-disable-next-line react-refresh/only-export-components
 function SearchableFilterSearchInput({filterItems, addPill}: SearchableFilterSearchInputProps) {
     const combobox = useCombobox({
@@ -528,11 +579,89 @@ function SearchableFilterSearchInput({filterItems, addPill}: SearchableFilterSea
             ></InputBase>
         </Combobox.Target>
         <Combobox.Dropdown>
-            <Combobox.Options mah={200} style={{ overflowY: "auto" }}>
+            <Combobox.Options mah={200} style={{overflowY: "auto"}}>
                 {options.length > 0 ? options : <Combobox.Empty>Nothing found</Combobox.Empty>}
             </Combobox.Options>
         </Combobox.Dropdown>
     </Combobox>
+}
+
+
+interface LegalityFilterOpts extends Omit<FilterOpts<SongData>, "getFilterValues">{
+    validator: ArmyValidator
+}
+
+class LegalityFilter extends Filter<SongData>{
+    private static _legal = "legal";
+    private static _slotIllegal = "slotIllegal";
+    private static _illegal = "illegal";
+
+    private readonly _validator: ArmyValidator
+
+    constructor({validator, ...others}: LegalityFilterOpts) {
+        const getFilterValues = (ent: SongData) => {
+            const slotLegal = this._validator.getEntityReasonsIllegalSlot(ent).length === 0;
+            const legal = this._validator.getEntityReasonsIllegal(ent).length === 0;
+            if (slotLegal) return LegalityFilter._legal;
+            if (legal) return LegalityFilter._slotIllegal;
+            return LegalityFilter._illegal;
+        }
+
+        super({
+            ...others,
+            getDefaultFilterState: () => 2,
+            items: [LegalityFilter._illegal],
+            allowedStates: [0, 1, 2],
+            permanentPillFn: () => true,
+            getFilterValues,
+        });
+        this._validator = validator;
+    }
+
+    doFilterEntity(entity: SongData, filterState: T_FilterState) {
+        const filterValue = this._getFilterValues(entity) as string;
+        const fs = filterState[this.getFilterStateHash(LegalityFilter._illegal)];
+
+        if (fs === 0) return true;
+        else if (fs === 1 && filterValue === LegalityFilter._illegal) return false;
+        else if (fs === 2 && filterValue !== LegalityFilter._legal) return false;
+        else return true;
+    }
+
+    protected _getRenderedPermanentMiniPill(filterState: T_FilterState, filterItem: FilterItem, setFilterState: T_setFilterState) {
+        if (!this._isPermanentPill(filterItem)) return null;
+
+        const stateHash = this.getFilterStateHash(filterItem);
+        const fs = filterState[stateHash];
+
+        return <Button
+            key={stateHash}
+            size="md"
+            radius="sm"
+            h={40}
+            w={40}
+            px={5}
+            color={fs === 0 ? "gray.5" : fs === 1 ? "orange.4" : "red.4"}
+            variant="filled"
+            onClick={() => this._onClickFilterPill(setFilterState, filterItem)}
+        >
+            <Image src="icon/legal.png"></Image>
+        </Button>
+    }
+
+    protected _getRenderedFilterPill(filterState: T_FilterState, filterItem: FilterItem, setFilterState: T_setFilterState) {
+        const stateHash = this.getFilterStateHash(filterItem);
+        const fs = filterState[stateHash];
+        return <Button
+            size="xs"
+            key={stateHash}
+            variant={fs === 0 ? "light" : "filled"}
+            color={fs === 0 ? "gray" : fs === 1 ? "orange" : "red"}
+            onClick={() => this._onClickFilterPill(setFilterState, filterItem)}
+        >
+            {fs === 0 ? "Display all Items" : fs === 1 ? "Display legal items" : "Only display slot legal items"}
+        </Button>
+    }
 }
 
 
@@ -547,6 +676,8 @@ export abstract class FilterData {
 }
 
 export class FilterSongData extends FilterData {
+    private readonly _validator: ArmyValidator;
+    readonly legalityFilter: LegalityFilter;
     readonly factionFilter: Filter<SongData>;
     readonly typeFilter: Filter<SongData>;
     readonly trayFilter: Filter<SongData>;
@@ -561,24 +692,51 @@ export class FilterSongData extends FilterData {
     readonly moraleFilter: Filter<SongData>;
     readonly abilitiesFilter: SearchableFilter<SongData>;
 
-    constructor() {
+    constructor({validator}: { validator: ArmyValidator }) {
         super();
+        this._validator = validator;
+
+        this.legalityFilter = new LegalityFilter({
+            header: "Legality",
+            validator: this._validator,
+        });
+
+        const displayPillFnFactions = function (this: Filter<SongData>, fi: FilterItem) {
+            return this._getDefaultFilterState(fi) !== 0;
+        }
         this.factionFilter = new Filter({
             header: "Factions",
             getFilterValues: (ent: SongData) => ent.statistics.faction,
+            getDefaultFilterState: (fi: FilterItem) => this._validator.getFeasibleFactions().includes(fi.hash as FACTIONS) ? 1 : 0,
+            permanentPillFn: displayPillFnFactions,
+            itemRenderFnPermanent: (fi: FilterItem) => <Image src={`./img/crest-${fi.hash}.png`}></Image>,
         });
+
         this.typeFilter = new Filter({
             header: "Type",
             getFilterValues: (ent: SongData) => ent._roleBuilder,
             itemRenderFn: (fi: FilterItem) => fi.hash,
-            itemRenderFnMini: (fi: FilterItem) => fi.hash,
+            itemRenderFnPermanent: (fi: FilterItem) => {
+                let text = "?";
+                switch (fi.hash) {
+                    case BuilderRoles.ncu: text = "NCU"; break;
+                    case BuilderRoles.unit: text = "CU"; break;
+                    case BuilderRoles.commander: text = "CMD"; break;
+                    case BuilderRoles.enemy: text = "EA"; break;
+                    case BuilderRoles.attachment: text = "ATT"; break;
+                }
+                return <Text size="xs" fw={700}>{text}</Text>
+            },
+            permanentPillFn: () => true
         });
+
         this.trayFilter = new Filter({
             header: "Tray",
             items: ["infantry", "cavalry", "solo", "warmachine"],
             itemSortFn: null,
             getFilterValues: (ent: SongData) => ent._fTray,
         });
+
         this.costFilter = new Filter({
             header: "Cost",
             itemRenderFnMini: fi => `Cost: ${fi.hash}`,
@@ -616,29 +774,34 @@ export class FilterSongData extends FilterData {
             header: "Attacks",
             filters: [this.attackTypeFilter, this.attackDiceFilter, this.toHitFilter],
         });
+
         this.characterFilter = new Filter({
             header: "Character/Commander",
             getFilterValues: (ent: SongData) => ent._fCharacter,
             items: [FilterCharCmdr.char, FilterCharCmdr.cmdr],
             itemSortFn: null,
         });
+
         this.speedFilter = new Filter({
             header: "Speed",
             getFilterValues: (ent: SongData) => ent.statistics.speed,
             itemRenderFnMini: (fi: FilterItem) => `Speed: ${fi.item}`,
         });
+
         this.defenseFilter = new Filter({
             header: "Defense",
             getFilterValues: (ent: SongData) => ent.statistics.defense,
             itemRenderFnMini: (fi: FilterItem) => `Defense: ${fi.item}+`,
             itemRenderFn: (fi: FilterItem) => `${fi.item}+`,
         });
+
         this.moraleFilter = new Filter({
             header: "Morale",
             getFilterValues: (ent: SongData) => ent.statistics.morale,
             itemRenderFnMini: (fi: FilterItem) => `Morale: ${fi.item}+`,
             itemRenderFn: (fi: FilterItem) => `${fi.item}+`,
         });
+
         this.abilitiesFilter = new SearchableFilter({
             header: "Abilities",
             getFilterValues: (ent: SongData) => ent._fAbilities,
@@ -647,6 +810,7 @@ export class FilterSongData extends FilterData {
 
     get filters() {
         return [
+            this.legalityFilter,
             this.factionFilter,
             this.typeFilter,
             this.trayFilter,

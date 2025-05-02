@@ -1,31 +1,53 @@
-import {ReactNode, useRef, useState} from "react";
-import ArmyContext, {withConfirm} from "../ArmyContext.ts";
+import {ReactNode, useState} from "react";
+import ArmyContext from "../ArmyContext.ts";
 import {
     armyDataToArmyIds,
-    armyIdsToArmyData,
     ArmyListIDs,
     BuilderRoles,
     defaultArmySize,
     SongData
 } from "../../songTypes.ts";
+import {ArmyValidator} from "../ArmyValidator.ts";
+import useConfirm, {useConfirmHandlers} from "../../hooks/useConfirm.tsx";
 
 
 interface ArmyContextProviderProps {
     children: ReactNode
-    defaultArmyData: ArmyListIDs
+    defaultArmyIDs: ArmyListIDs
     data: SongData[]
+    validator: ArmyValidator
 }
 
-function ArmyContextProvider({children, defaultArmyData, data}: ArmyContextProviderProps) {
-    const [armyIds, setArmyIds] = useState(defaultArmyData);
-    const slot = useRef(-1);
+function ArmyContextProvider({children, defaultArmyIDs, data, validator}: ArmyContextProviderProps) {
+    const [armyIds, _setArmyIds] = useState(defaultArmyIDs);
+    const [slot, _setSlot] = useState(-1);
+    const [allowIllegal, setAllowIllegal] = useState(false);
+    const {ConfirmModal, askConfirm} = useConfirm();
 
-    const armyData = armyIdsToArmyData(armyIds, data);
+    const setArmyIds = (fnGetNewState: (prevState: ArmyListIDs) => ArmyListIDs, callback?: () => void) => {
+        _setArmyIds(prev => {
+            const newState = fnGetNewState(prev);
+            // We need to update the state in validator immediately. Otherwise, the new value would only be accessible AFTER ALL state setting hooks have finished running.
+            validator.onArmyListChange(newState);
+            if (callback !== undefined) callback();
+
+            return newState;
+        });
+    }
+    const setSlot = (newSlot: number) => {
+        validator.setSlot(newSlot);
+        _setSlot(newSlot);
+    }
+
+    const armyData = validator.armyListData;
 
     const addToArmy = function (dataToAdd: SongData) {
         if (data.find(it => it.id === dataToAdd.id) === undefined) return;
 
         let nextSlot = -1;
+        // Only stay on current slot if we can add more attachments to the unit
+        let slotIfIsAttachable = -1
+
         switch (dataToAdd._roleBuilder) {
             case BuilderRoles.commander: {
                 armyData.commander = dataToAdd;
@@ -45,29 +67,36 @@ function ArmyContextProvider({children, defaultArmyData, data}: ArmyContextProvi
                 armyData.enemy.push(dataToAdd);
                 break;
             case BuilderRoles.attachment: {
-                if (slot.current >= armyData.unit.length || slot.current === -1) {
+                const isSlotLegal = allowIllegal || validator.getEntityReasonsIllegalSlot(dataToAdd).length === 0;
+                if (slot >= armyData.unit.length || slot === -1 || !isSlotLegal) {
+                    if (slot >= armyData.unit.length) slotIfIsAttachable = armyData.unit.length;
                     armyData.unit.push({unit: null, attachments: [dataToAdd]});
                 } else {
-                    armyData.unit[slot.current].attachments.push(dataToAdd);
-                    // Only stay on current slot if we can add more attachments to the unit. Right now, assume that we can't
-                    // nextSlot = slot.current;
+                    armyData.unit[slot].attachments.push(dataToAdd);
+                    slotIfIsAttachable = slot
                 }
                 break;
             }
             case BuilderRoles.unit: {
-                if (slot.current >= armyData.unit.length || slot.current === -1 || armyData.unit[slot.current].unit !== null) {
+                const isSlotLegal = allowIllegal || validator.getEntityReasonsIllegalSlot(dataToAdd).length === 0;
+                if (slot >= armyData.unit.length || slot === -1 || armyData.unit[slot].unit !== null || !isSlotLegal) {
                     armyData.unit.push({unit: dataToAdd, attachments: []});
-                    nextSlot = armyData.unit.length - 1;
+                    slotIfIsAttachable = armyData.unit.length - 1;
                 } else {
-                    armyData.unit[slot.current].unit = dataToAdd;
-                    nextSlot = slot.current;
+                    armyData.unit[slot].unit = dataToAdd;
+                    slotIfIsAttachable = slot;
                 }
                 break;
             }
         }
 
-        setArmyIds(armyDataToArmyIds(armyData));
-        slot.current = nextSlot;
+        setArmyIds(
+            () => armyDataToArmyIds(armyData),
+            () => {
+                if (validator.isSlotAttachable(slotIfIsAttachable)) setSlot(slotIfIsAttachable);
+                else setSlot(nextSlot);
+            },
+        );
     }
 
     const deleteFromArmy = function ({ixRemove, key, ixRemoveChild}: {
@@ -75,14 +104,15 @@ function ArmyContextProvider({children, defaultArmyData, data}: ArmyContextProvi
         key: "unit" | "attachment" | "ncu" | "enemy",
         ixRemoveChild?: number,
     }) {
+        let nextSlot = slot;
         let removed: SongData | undefined | null;
         if (key === "unit") {
             removed = armyData.unit[ixRemove].unit;
             armyData.unit[ixRemove].unit = null
-            slot.current = ixRemove;
+            nextSlot = ixRemove;
         } else if (key === "attachment") {
             if (ixRemoveChild !== undefined) removed = armyData.unit[ixRemove].attachments.splice(ixRemoveChild, 1)[0];
-            if (armyData.unit[ixRemove].attachments.length === 0) slot.current = ixRemove;
+            if (armyData.unit[ixRemove].attachments.length === 0) nextSlot = ixRemove;
         } else if (key === "ncu") {
             removed = armyData.ncu.splice(ixRemove, 1)[0];
         } else if (key === "enemy") {
@@ -95,11 +125,12 @@ function ArmyContextProvider({children, defaultArmyData, data}: ArmyContextProvi
             && armyData.unit[ixRemove].attachments.length === 0
         ) {
             armyData.unit.splice(ixRemove, 1);
-            slot.current = -1;
+            nextSlot = -1;
         }
         if (removed?.id === armyData.commander?.id) armyData.commander = undefined;
 
-        setArmyIds(armyDataToArmyIds(armyData));
+        setArmyIds(() => armyDataToArmyIds(armyData));
+        setSlot(nextSlot);
     }
 
     const _setArmyFaction = function (faction: string) {
@@ -109,47 +140,56 @@ function ArmyContextProvider({children, defaultArmyData, data}: ArmyContextProvi
         });
     }
 
-    const setArmyFaction = function (faction: string, withConfirm?: withConfirm) {
-        if (withConfirm && withConfirm.askConfirm && faction !== armyIds.faction && armyIds.ids.length) {
-            withConfirm.askConfirm({
+    const confirmSetArmyFaction = function (faction: string, handlers?: useConfirmHandlers) {
+        handlers = handlers || {};
+
+        if (faction !== armyIds.faction && armyIds.ids.length) {
+            askConfirm({
+                ...handlers,
                 onConfirm: () => {
-                    if (withConfirm.onConfirm) withConfirm.onConfirm();
                     _setArmyFaction(faction);
+                    if (handlers.onConfirm) handlers.onConfirm();
                 },
-                onCancel: withConfirm.onCancel,
+                title: "Are you sure?",
+                message: "Selecting a new faction will wipe your army!"
             });
         } else {
             _setArmyFaction(faction);
-            if (withConfirm?.onConfirm) withConfirm.onConfirm();
+            if (handlers.onConfirm) handlers.onConfirm();
         }
     }
 
     const setArmyPoints = function (points: number) {
         setArmyIds(prev => {
-            return {...prev, points: points || defaultArmySize, ids: [...prev.ids]} as ArmyListIDs
+            return {...prev, points: points || defaultArmySize, ids: [...prev.ids]}
         });
     }
 
     const setArmyFormat = function (format: string) {
         setArmyIds(prev => {
-            return {...prev, format, ids: [...prev.ids]} as ArmyListIDs
+            return {...prev, format, ids: [...prev.ids]}
         });
     }
 
     const loadArmy = function (army: ArmyListIDs) {
-        setArmyIds(army);
+        setArmyIds(() => army);
     }
 
     return <ArmyContext.Provider value={{
         armyData,
         armyIds,
+        slot,
+        setSlot,
+        allowIllegal,
+        setAllowIllegal: (b) => setAllowIllegal(b),
+        armyValidator: validator,
         loadArmy,
         addToArmy,
         deleteFromArmy,
-        setArmyFaction,
+        confirmSetArmyFaction,
         setArmyPoints,
         setArmyFormat,
-        slot
+        ConfirmModal
     }}>
         {children}
     </ArmyContext.Provider>

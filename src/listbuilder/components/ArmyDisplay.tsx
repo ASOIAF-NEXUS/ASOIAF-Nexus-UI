@@ -1,5 +1,5 @@
 import {BuilderRoles, SongData} from "../../songTypes.ts";
-import {Button, ScrollArea, Stack} from "@mantine/core";
+import {Button, Flex, ScrollArea, Stack, Text} from "@mantine/core";
 import {useContext} from "react";
 import FilterContext from "../FilterContext.ts";
 import {FilterSongData} from "../filter.tsx";
@@ -54,31 +54,40 @@ interface ArmyDisplayProps {
 
 function ArmyDisplay({filterData}: ArmyDisplayProps) {
     const {setFilterState} = useContext(FilterContext);
-    const {armyData, slot, deleteFromArmy} = useContext(ArmyContext);
+    const {armyData, slot, setSlot, deleteFromArmy, armyValidator, allowIllegal} = useContext(ArmyContext);
 
     const setFilterAndSlot = (newVal: string, newSlot: number) => {
-        slot.current = newSlot;
         const typeFilter = filterData.typeFilter;
         setFilterState(prevState => {
             const newState = {...prevState, ...typeFilter.defaultFilterState};
             newState[typeFilter.getFilterStateHash(newVal)] = 1;
-            return newState
+            return newState;
         });
+        setSlot(newSlot);
     }
+    const pools = armyValidator.pointPools;
+    const armySize = <Text fw={700} size="lg" c={armyValidator.exceedsPoints() ? "red" : undefined} component="span" className="ml-auto">
+        Points: {pools[1].points}/{pools[1].max} ({pools[0].points}/{pools[0].max})
+    </Text>;
 
     return <ScrollArea scrollbars="y" offsetScrollbars><Stack className="gap-0">
+        <Flex className="my-1">
         {armyData.commander === undefined
-            ? <><h3>No Commander Selected</h3><AddToArmyButton text="Add Commander" onClick={() => setFilterAndSlot(BuilderRoles.commander, -1)}></AddToArmyButton></>
-            : <h3>{armyData.commander.name}</h3>}
+            ? <><Text fw={700} size="lg">No Commander Selected</Text>{armySize}</>
+            : <><Text fw={700} size="lg">{armyData.commander.name}</Text>{armySize}</>}
+        </Flex>
+        {armyData.commander === undefined
+            ? <AddToArmyButton text="Add Commander" onClick={() => setFilterAndSlot(BuilderRoles.commander, -1)}></AddToArmyButton>
+            : null}
 
-        <h3 className="m-1 mx-0">Combat Units</h3>
+        <Text fw={700} size="lg">Combat Units</Text>
         {armyData.unit.map((obj, idx) => {
             const out = [];
             if (obj.unit === null) {
                 out.push(<AddToArmyButton
                     key={idx}
                     text="Add Combat Unit"
-                    variant={slot.current === idx ? "light" : undefined}
+                    variant={slot === idx ? "light" : undefined}
                     onClick={() => setFilterAndSlot(BuilderRoles.unit, idx)}>
                 </AddToArmyButton>);
             } else {
@@ -97,12 +106,12 @@ function ArmyDisplay({filterData}: ArmyDisplayProps) {
                 />)
             })
 
-            const isUnitAttachable = obj.unit && obj.unit.statistics.tray !== "solo";
-            if (obj.attachments.length <= 1 && isUnitAttachable) {
+            const isUnitAttachable = armyValidator.isSlotAttachable(idx);
+            if (isUnitAttachable || allowIllegal) {
                 out.push(<AddToArmyButton
                     key={idx + 1000}
                     text="Add Attachment"
-                    variant={slot.current === idx ? "light" : undefined}
+                    variant={slot === idx ? "light" : undefined}
                     onClick={() => setFilterAndSlot(BuilderRoles.attachment, idx)}></AddToArmyButton>);
             }
 
@@ -110,16 +119,16 @@ function ArmyDisplay({filterData}: ArmyDisplayProps) {
         })}
         <AddToArmyButton
             text="Add Combat Unit"
-            variant={slot.current === armyData.unit.length ? "light" : undefined}
+            variant={slot === armyData.unit.length ? "light" : undefined}
             onClick={() => setFilterAndSlot(BuilderRoles.unit, armyData.unit.length)}>
         </AddToArmyButton>
         <AddToArmyButton
             text="Add Attachment"
-            variant={slot.current === armyData.unit.length ? "light" : undefined}
+            variant={slot === armyData.unit.length ? "light" : undefined}
             onClick={() => setFilterAndSlot(BuilderRoles.attachment, armyData.unit.length)}>
         </AddToArmyButton>
 
-        <h3>NCUs</h3>
+        <Text fw={700} size="lg">NCUs</Text>
         {armyData.ncu.map((obj, idx) => {
             return <UnitCard
                 key={idx}

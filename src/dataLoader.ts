@@ -26,6 +26,9 @@ class DataLoader {
         else if (ent.id.startsWith("5")) ent._prop = "specials";
         else ent._prop = "unknown";
 
+        // The data needs to change!
+        if (ent._prop === "ncus") ent.statistics.character = true;
+
         if (ent.statistics.commander) ent._roleBuilder = BuilderRoles.commander;
         else if (ent.statistics.enemy) ent._roleBuilder = BuilderRoles.enemy;
         else if (ent._prop === "units") ent._roleBuilder = BuilderRoles.unit;

@@ -1,6 +1,6 @@
 import {ReactElement} from "react";
 import {SongData} from "../songTypes.ts";
-import HoverWrapper from "./HoverWindow.tsx";
+import {HoverWrapper} from "./HoverWindow.tsx";
 import {Image} from "@mantine/core";
 
 interface SongHoverWrapperProps {

@@ -1,15 +1,23 @@
 import * as React from "react";
-import {Attributes, cloneElement, CSSProperties, useContext, useEffect, useRef, useState} from "react";
+import {
+    Attributes,
+    cloneElement,
+    CSSProperties,
+    useContext,
+    useEffect,
+    useRef,
+    useState
+} from "react";
 import {createPortal} from "react-dom";
-import {Button, Flex, ScrollArea} from "@mantine/core";
+import {Button, Flex, Image, ScrollArea} from "@mantine/core";
 import useMouseDrag from "../hooks/useMouseDrag.ts";
 import "./hover.css"
 import {clamp} from "../utils.ts";
-import {useViewportSize} from "@mantine/hooks";
+import {useId, useViewportSize} from "@mantine/hooks";
 import HoverContext from "../HoverContext.ts";
 
 
-type T_HoverState = {
+export interface HoverState {
     isHovering: boolean
     showAltContent: boolean
     permanent: boolean
@@ -29,10 +37,11 @@ interface HoverWrapperProps {
     windowTitle?: string
 }
 
-function HoverWrapper({children, hoverContent, alternateContent, defaultSize, windowTitle}: HoverWrapperProps) {
+export function HoverWrapper({children, hoverContent, alternateContent, defaultSize, windowTitle}: HoverWrapperProps) {
     const {height: screenHeight, width: screenWidth} = useViewportSize();
-    const {getNextZIndex} = useContext(HoverContext);
-    const [hoverState, setHoverState] = useState<T_HoverState>({
+    const {getNextZIndex, createPermanentWindow, existsPermanentWindow} = useContext(HoverContext);
+    const uuid = useId();
+    const [hoverState, setHoverState] = useState<HoverState>({
         isHovering: false,
         showAltContent: false,
         permanent: false,
@@ -45,19 +54,17 @@ function HoverWrapper({children, hoverContent, alternateContent, defaultSize, wi
         offset: 10,
     });
     const ref = useRef(null);
-
     const child = React.Children.only(children);
     const cloned = cloneElement(child, {
         ref,
     } as Attributes);
-
 
     useEffect(() => {
         const ele = ref.current as HTMLElement | null;
 
         if (ele === null) return undefined;
 
-        const getTop = (y: number, state: T_HoverState) => {
+        const getTop = (y: number, state: HoverState) => {
             const downOutOfBounds = y + state.offset + state.height > screenHeight;
             const upOutOfBounds = y - state.height - state.offset < 0;
 
@@ -65,7 +72,7 @@ function HoverWrapper({children, hoverContent, alternateContent, defaultSize, wi
             else if (downOutOfBounds) return y - state.height - state.offset;
             return y + state.offset;
         }
-        const getLeft = (x: number,  state: T_HoverState) => {
+        const getLeft = (x: number,  state: HoverState) => {
             const rightOutOfBounds = x + state.offset + state.width > screenWidth;
             const leftOutOfBounds = x - state.width - state.offset < 0;
 
@@ -77,31 +84,44 @@ function HoverWrapper({children, hoverContent, alternateContent, defaultSize, wi
         const controller = new AbortController();
         const signal = controller.signal;
         ele.addEventListener("mouseenter", (evt: MouseEvent) => {
+            let stateForPermWindow: null | HoverState = null;
             setHoverState(prevState => {
                 const permanent = evt.ctrlKey || prevState.permanent;
-                return {
+                const newState = {
                     ...prevState,
+                    permanent,
                     isHovering: true,
                     showAltContent: evt.shiftKey || false,
-                    permanent,
-                    left: permanent ? prevState.left : getLeft(evt.x, prevState),
-                    top: permanent ? prevState.top : getTop(evt.y, prevState),
-                    z: permanent ? prevState.z : getNextZIndex(),
+                    left: getLeft(evt.x, prevState),
+                    top: getTop(evt.y, prevState),
+                    z: getNextZIndex(),
+                };
+                if (!prevState.permanent && permanent) {
+                    stateForPermWindow = newState;
                 }
+                return newState;
             });
+            if (stateForPermWindow !== null) createPermanentWindow({id: uuid, hoverState: stateForPermWindow, content: hoverContent, alternateContent, windowTitle});
         }, {signal});
 
         ele.addEventListener("mousemove", (evt: MouseEvent) => {
+            let stateForPermWindow: null | HoverState = null;
             setHoverState(prevState => {
                 const permanent = evt.ctrlKey || prevState.permanent;
-                return {
+                const newState = {
                     ...prevState,
-                    showAltContent: permanent ? prevState.showAltContent : evt.shiftKey || false,
                     permanent,
-                    left: permanent ? prevState.left : getLeft(evt.x, prevState),
-                    top: permanent ? prevState.top : getTop(evt.y, prevState),
+                    showAltContent: evt.shiftKey || false,
+                    left: getLeft(evt.x, prevState),
+                    top: getTop(evt.y, prevState),
                 }
+
+                if (!prevState.permanent && permanent) {
+                    stateForPermWindow = newState;
+                }
+                return newState;
             });
+            if (stateForPermWindow !== null) createPermanentWindow({id: uuid, hoverState: stateForPermWindow, content: hoverContent, alternateContent, windowTitle});
         }, {signal});
 
         ele.addEventListener("mouseleave", () => {
@@ -113,20 +133,22 @@ function HoverWrapper({children, hoverContent, alternateContent, defaultSize, wi
         return () => {
             controller.abort();
         };
-    }, [getNextZIndex, screenHeight, screenWidth]);
+    }, [getNextZIndex, screenHeight, screenWidth, uuid, createPermanentWindow, hoverContent, alternateContent, windowTitle]);
+
+    if (!existsPermanentWindow(uuid) && hoverState.permanent) setHoverState(prev => ({...prev, permanent: false}));
 
     return <>
         {cloned}
-        {!hoverState.isHovering && !hoverState.permanent
+        {!hoverState.isHovering || hoverState.permanent
             ? null
             : createPortal(
                 <HoverWindow
                     hoverState={hoverState}
                     setHoverState={setHoverState}
                     windowTitle={windowTitle}
-                >
-                    {hoverState.showAltContent ? alternateContent : hoverContent}
-                </HoverWindow>,
+                    content={hoverContent}
+                    alternateContent={alternateContent}
+                ></HoverWindow>,
                 document.body)
         }
     </>
@@ -147,13 +169,15 @@ function ResizeBorder({direction, handleDrag, onStartDrag}: ResizeBorderProps) {
 
 
 interface HoverWindowProps {
-    children?: React.ReactNode
-    hoverState: T_HoverState
-    setHoverState: React.Dispatch<React.SetStateAction<T_HoverState>>
+    content: React.ReactNode
+    alternateContent?: React.ReactNode
+    hoverState: HoverState
+    setHoverState: (stFn: (hs: HoverState) => HoverState) => void
     windowTitle?: string
+    onClose?: (evt: React.MouseEvent) => void
 }
 
-function HoverWindow({children, hoverState, setHoverState, windowTitle}: HoverWindowProps) {
+export function HoverWindow({content, alternateContent, hoverState, setHoverState, windowTitle, onClose}: HoverWindowProps) {
     const {height: screenHeight, width: screenWidth} = useViewportSize();
     const {getNextZIndex} = useContext(HoverContext);
 
@@ -271,21 +295,37 @@ function HoverWindow({children, hoverState, setHoverState, windowTitle}: HoverWi
         onStartDrag={onStartResize}
     ></ResizeBorder>);
 
+    const onClickClose = (evt: React.MouseEvent) => {
+        if (onClose) onClose(evt);
+        else setHoverState(prev => ({...prev, permanent: false}));
+    }
+
     return <div className="hover-window" style={style}>
         {resizeBorders}
-        <div ref={refMoveWindow} className="hoverborder hoverborder--top">
-            <span style={{color: "white", fontSize: "12px", paddingLeft: "2px"}}>{windowTitle || ""}</span>
+        <Flex className="hoverborder hoverborder--top">
+            <span ref={refMoveWindow} style={{color: "white", fontSize: "12px", paddingLeft: "2px", flexGrow: 1, textAlign: "left"}}>{windowTitle || ""}</span>
+            <Button
+                variant="transparent"
+                size="xs"
+                h={18}
+                w={24}
+                p={0}
+                onClick={() => setHoverState(prev => ({...prev, showAltContent: !prev.showAltContent}))}
+            >
+                <Image h={18} w={18} src="./icon/cycle.png"></Image>
+            </Button>
             <Button
                 color="red"
                 variant="transparent"
-                style={{height: "18px"}}
-                className="ml-auto"
-                onClick={() => setHoverState(prev => ({...prev, permanent: false}))}
+                h={18}
+                w={36}
+                p={0}
+                onClick={onClickClose}
             >X</Button>
-        </div>
+        </Flex>
         <ScrollArea className="h-100" scrollbars="y">
             <Flex direction="column" align="center">
-                {children}
+                {hoverState.showAltContent && alternateContent !== undefined ? alternateContent : content}
             </Flex>
         </ScrollArea>
         <div className="hoverborder hoverborder--bottom">
@@ -293,6 +333,3 @@ function HoverWindow({children, hoverState, setHoverState, windowTitle}: HoverWi
         </div>
     </div>
 }
-
-
-export default HoverWrapper;

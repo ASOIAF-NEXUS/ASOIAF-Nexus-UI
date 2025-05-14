@@ -4,6 +4,8 @@ import ArmyContext from "../ArmyContext.ts";
 import {Button, Flex, Grid, Image, Overlay, ScrollArea, Switch, Table, Text, Tooltip} from "@mantine/core";
 import SongHoverWrapper from "../../components/SongHoverWrapper.tsx";
 import {SortUtil} from "../../utils.ts";
+import {LazyLoadImage, ScrollPosition, trackWindowScroll} from "react-lazy-load-image-component";
+
 
 interface ListDisplayProps {
     displayData: SongData[],
@@ -81,15 +83,25 @@ function FilterListTextDisplay({displayData}: ListDisplayProps) {
     </ScrollArea>
 }
 
-function DisplayCard({entity}: { entity: SongData }) {
+function DisplayCard({entity, scrollPosition}: { entity: SongData, scrollPosition: ScrollPosition }) {
     const src = `./img/${entity.id}x1.webp`;
     const {addToArmy, armyValidator, allowIllegal} = useContext(ArmyContext);
     const legality = armyValidator.getEntityReasonsIllegal(entity);
     const slotLegality = armyValidator.getEntityReasonsIllegalSlot(entity);
     const isLegal = legality.length === 0;
 
+    // TODO: Would be nice to calculate image height to prevent the layout from jumping
+
     if (isLegal && slotLegality.length === 0) return <>
-        <Image className="pointer" src={src} onClick={() => addToArmy(entity)}></Image>
+        <LazyLoadImage
+            src={src}
+            scrollPosition={scrollPosition}
+            effect="opacity"
+            width="100%"
+            className="pointer block"
+            onClick={() => addToArmy(entity)}
+            wrapperClassName="block"
+        ></LazyLoadImage>
         <p className="my-0">
             <b>{entity._fullName}</b>{` (${entity.statistics.cost})`}
         </p>
@@ -101,8 +113,20 @@ function DisplayCard({entity}: { entity: SongData }) {
     return <>
         <Tooltip label={reason}>
             <div style={{position: "relative"}}>
-                <Image className="pointer" src={src}></Image>
-                <Overlay color={color} backgroundOpacity={0.35} onClick={allowIllegal || isLegal ? () => addToArmy(entity) : undefined}/>
+                <LazyLoadImage
+                    src={src}
+                    scrollPosition={scrollPosition}
+                    effect="opacity"
+                    width="100%"
+                    wrapperClassName="block"
+                    className="block">
+                </LazyLoadImage>
+                <Overlay
+                    className={allowIllegal || isLegal ? "pointer" : undefined}
+                    color={color}
+                    backgroundOpacity={0.35}
+                    onClick={allowIllegal || isLegal ? () => addToArmy(entity) : undefined}
+                />
             </div>
         </Tooltip>
         <Text c={legality.length === 0 ? "yellow.8" : "red.9"} className="my-0">
@@ -111,7 +135,7 @@ function DisplayCard({entity}: { entity: SongData }) {
     </>
 }
 
-function ImageDisplayCategory({category, entities}: { category: string, entities: SongData[] }) {
+function ImageDisplayCategory({category, entities, scrollPosition}: { category: string, entities: SongData[], scrollPosition: ScrollPosition}) {
     const [isHidden, setIsHidden] = useState(false);
     const {armyValidator} = useContext(ArmyContext);
 
@@ -132,7 +156,7 @@ function ImageDisplayCategory({category, entities}: { category: string, entities
         >
             <Flex pos="relative">
                 <Text fw={700} size="lg" className="mx-1">{role}s</Text>
-                <Image  src={isHidden ? "icon/hide.png" : "icon/show.png"} className="ml-1"></Image>
+                <Image src={isHidden ? "icon/hide.png" : "icon/show.png"} className="ml-1"></Image>
                 <Overlay
                     gradient="linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 100%)"
                     opacity={0.85}
@@ -153,14 +177,18 @@ function ImageDisplayCategory({category, entities}: { category: string, entities
             ? null
             : entities.sort(sortListDisplay).map(ent => {
                 return <Grid.Col key={ent.id} span={ent._prop === "units" ? 6 : 3}>
-                    <DisplayCard entity={ent}></DisplayCard>
+                    <DisplayCard entity={ent} scrollPosition={scrollPosition}></DisplayCard>
                 </Grid.Col>;
             })
         }
     </>
 }
 
-function FilterListImageDisplay({displayData}: ListDisplayProps) {
+interface ListDisplayPropsWithScroll extends ListDisplayProps {
+    scrollPosition: ScrollPosition,
+}
+
+function FilterListImageDisplayUntracked({displayData, scrollPosition}: ListDisplayPropsWithScroll) {
     const byCategory = {
         [BuilderRoles.commander]: displayData.filter(sd => sd._roleBuilder === BuilderRoles.commander),
         [BuilderRoles.unit]: displayData.filter(sd => sd._roleBuilder === BuilderRoles.unit),
@@ -172,13 +200,17 @@ function FilterListImageDisplay({displayData}: ListDisplayProps) {
 
     return <ScrollArea scrollbars="y" offsetScrollbars>
         <Grid>
-            {Object.entries(byCategory).map(([category, entities]) => <ImageDisplayCategory key={category} category={category} entities={entities}></ImageDisplayCategory>)}
+            {Object.entries(byCategory).map(([category, entities]) => <ImageDisplayCategory
+                scrollPosition={scrollPosition} key={category} category={category}
+                entities={entities}></ImageDisplayCategory>)}
             {isNoItemDisplayed
                 ? <Grid.Col span={12}><Text ta="center" fw={700}>No items to display! Widen your search...</Text></Grid.Col>
                 : null}
         </Grid>
     </ScrollArea>
 }
+
+const FilterListImageDisplay = trackWindowScroll(FilterListImageDisplayUntracked);
 
 function SongDataFilterListDisplay({displayData}: ListDisplayProps) {
     const [isDisplayImages, setIsDisplayImages] = useState(true);
@@ -197,5 +229,6 @@ function SongDataFilterListDisplay({displayData}: ListDisplayProps) {
             : <FilterListTextDisplay displayData={displayData}></FilterListTextDisplay>}
     </>
 }
+
 
 export default SongDataFilterListDisplay;

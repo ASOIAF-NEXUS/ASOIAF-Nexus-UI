@@ -4,3 +4,7 @@
     padding: 3px;
     margin: 0 50px;
 }
+
+img {
+    user-select: none;
+}

@@ -1,6 +1,6 @@
-import {ArmyListIDs} from "../songTypes.ts";
-import {Dictionary} from "../utils.ts";
-import { v4 as uuidv4 } from 'uuid';
+import {ArmyListIDs} from "../../utils/songTypes.ts";
+import {Dictionary} from "../../utils/utils.ts";
+import {v4 as uuidv4} from 'uuid';
 
 
 export interface SavableArmyData {

@@ -1,5 +1,5 @@
 import {ReactElement} from "react";
-import {SongData} from "../songTypes.ts";
+import {SongData} from "../../../utils/songTypes.ts";
 import {HoverWrapper} from "./HoverWindow.tsx";
 import {Image} from "@mantine/core";
 

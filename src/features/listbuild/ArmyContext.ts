@@ -1,7 +1,7 @@
 import * as React from "react";
 import {createContext} from "react";
-import {ArmyListData, ArmyListIDs, SongData} from "../songTypes.ts";
-import {useConfirmHandlers} from "../hooks/useConfirm.tsx";
+import {ArmyListData, ArmyListIDs, SongData} from "../../utils/songTypes.ts";
+import {useConfirmHandlers} from "../../hooks/useConfirm.tsx";
 import {ArmyValidator} from "./ArmyValidator.ts";
 
 

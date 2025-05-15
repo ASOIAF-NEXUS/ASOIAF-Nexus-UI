@@ -1,7 +1,7 @@
 import {Button, ButtonGroup, Flex, Image, List, Popover, Stack, Text, Tooltip} from "@mantine/core";
 import {useContext} from "react";
 import ArmyContext from "../ArmyContext.ts";
-import {FORMATS, T_armyFormat} from "../../songTypes.ts";
+import {FORMATS, T_armyFormat} from "../../../utils/songTypes.ts";
 
 
 function FormatButton({format}: { format: T_armyFormat }) {

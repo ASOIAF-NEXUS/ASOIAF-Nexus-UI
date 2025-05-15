@@ -1,23 +1,23 @@
 import '@mantine/core/styles.css';
-import "../filter.css";
-import {FilterSongData} from "../filter.tsx";
-import {dataLoader} from "../../dataLoader.ts";
-import FilterBox from "./FilterBox.tsx"
-import ArmyDisplay from "./ArmyDisplay.tsx";
-import FilterContextProvider from "./FilterContextProvider.tsx";
-import FactionSelect from "./FactionSelect.tsx";
-import {defaultArmyIds, SongData} from "../../songTypes.ts";
-import "../../utils.ts"
+import "../features/filter/filter.css";
+import {dataLoader} from "../utils/dataLoader.ts";
+import FilterBox from "../features/filter/components/FilterBox.tsx"
+import ArmyDisplay from "../features/listbuild/components/ArmyDisplay.tsx";
+import FilterContextProvider from "../features/filter/components/FilterContextProvider.tsx";
+import FactionSelect from "../features/listbuild/components/FactionSelect.tsx";
+import {defaultArmyIds, SongData} from "../utils/songTypes.ts";
+import "../utils/utils.ts"
 import {ButtonGroup, Flex} from "@mantine/core";
-import ArmyContextProvider from "./ArmyContextProvider.tsx";
-import SongDataFilterListDisplay from "./SongDataFilterListDisplay.tsx";
-import HoverContextProvider from "../../components/HoverContextProvider.tsx";
-import ArmySizeSelect from "./ArmySizeSelect.tsx";
-import FormatSelect from "./FormatSelect.tsx";
-import SaveLoadControls from "./SaveLoadArmies.tsx";
-import ImportArmyButton from "./ImportArmyButton.tsx";
-import ExportArmyButton from "./ExportArmyButton.tsx";
-import {ArmyValidator} from "../ArmyValidator.ts";
+import ArmyContextProvider from "../features/listbuild/components/ArmyContextProvider.tsx";
+import SongDataFilterListDisplay from "../features/filter/components/SongDataFilterListDisplay.tsx";
+import HoverContextProvider from "../features/hoverwindows/components/HoverContextProvider.tsx";
+import ArmySizeSelect from "../features/listbuild/components/ArmySizeSelect.tsx";
+import FormatSelect from "../features/listbuild/components/FormatSelect.tsx";
+import SaveLoadControls from "../features/listbuild/components/SaveLoadArmies.tsx";
+import ImportArmyButton from "../features/listbuild/components/ImportArmyButton.tsx";
+import ExportArmyButton from "../features/listbuild/components/ExportArmyButton.tsx";
+import {ArmyValidator} from "../features/listbuild/ArmyValidator.ts";
+import {FilterSongData} from "../features/filter/filter.tsx";
 
 const allData = dataLoader.load();
 const data = allData.filter(d => d._prop != "tactics" && d._prop != "specials");

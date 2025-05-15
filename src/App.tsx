@@ -1,6 +1,6 @@
 import '@mantine/core/styles.css';
 import "./App.css";
-import ListBuilder from "./listbuilder/components/ListBuilder.tsx";
+import ListBuilder from "./pages/ListBuilder.tsx";
 
 
 function App() {

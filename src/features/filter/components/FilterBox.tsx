@@ -1,19 +1,10 @@
 import * as React from "react";
 import {useContext, useMemo, useState} from "react";
-import {
-    PillGroup,
-    Button,
-    TextInput,
-    Input,
-    ButtonGroup,
-    Modal,
-    ScrollArea,
-    Flex, Text,
-} from "@mantine/core";
+import {Button, ButtonGroup, Flex, Input, Modal, PillGroup, ScrollArea, Text, TextInput,} from "@mantine/core";
 import {useDisclosure} from "@mantine/hooks";
-import {FilterData} from "../filter.tsx"
-import FilterContext from "../FilterContext.ts";
-import ArmyContext from "../ArmyContext.ts";
+import ArmyContext from "../../listbuild/ArmyContext.ts";
+import {FilterData} from "../filter.tsx";
+import {useFilterContext} from "../FilterContext.ts";
 
 
 interface FilterModalProps {
@@ -23,7 +14,7 @@ interface FilterModalProps {
 }
 
 function FilterModal({isOpen, onClose, dataFilter}: FilterModalProps) {
-    const {filterState, setFilterState} = useContext(FilterContext);
+    const {filterState, setFilterState} = useFilterContext();
 
     return <Modal
         opened={isOpen}
@@ -57,7 +48,7 @@ interface FilterBoxProps<T> {
 }
 
 function FilterBox<T>({data, filterData, FilterListDisplay}: FilterBoxProps<T>) {
-    const {filterState, setFilterState} = useContext(FilterContext);
+    const {filterState, setFilterState} = useFilterContext();
     // FIXME: This is bad architecture. Shouldn't use ArmyContext here
     const armyContext = useContext(ArmyContext);
     const [searchText, setSearchText] = useState("");

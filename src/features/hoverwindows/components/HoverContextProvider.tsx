@@ -1,8 +1,8 @@
 import {ReactNode, useRef, useState} from "react";
-import HoverContext from "../HoverContext";
+import HoverContext from "../HoverContext.ts";
 import {createPortal} from "react-dom";
 import {HoverState, HoverWindow} from "./HoverWindow.tsx";
-import {Dictionary} from "../utils.ts";
+import {Dictionary} from "../../../utils/utils.ts";
 
 
 interface HoverContextProviderProps {

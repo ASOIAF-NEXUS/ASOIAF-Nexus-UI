@@ -1,14 +1,8 @@
 import {ReactNode, useState} from "react";
 import ArmyContext from "../ArmyContext.ts";
-import {
-    armyDataToArmyIds,
-    ArmyListIDs,
-    BuilderRoles,
-    defaultArmySize,
-    SongData
-} from "../../songTypes.ts";
+import {armyDataToArmyIds, ArmyListIDs, BuilderRoles, defaultArmySize, SongData} from "../../../utils/songTypes.ts";
 import {ArmyValidator} from "../ArmyValidator.ts";
-import useConfirm, {useConfirmHandlers} from "../../hooks/useConfirm.tsx";
+import useConfirm, {useConfirmHandlers} from "../../../hooks/useConfirm.tsx";
 
 
 interface ArmyContextProviderProps {

@@ -1,9 +1,9 @@
 import {Button, Image, Popover} from "@mantine/core";
 import {useContext, useState} from "react";
-import FilterContext from "../FilterContext.ts";
 import ArmyContext from "../ArmyContext.ts";
-import {FilterSongData} from "../filter.tsx";
-import {FACTIONS} from "../../songTypes.ts";
+import {FACTIONS} from "../../../utils/songTypes.ts";
+import {useFilterContext} from "../../filter/FilterContext.ts";
+import {FilterSongData} from "../../filter/filter.tsx";
 
 
 interface FactionSelectOpts {
@@ -11,7 +11,7 @@ interface FactionSelectOpts {
 }
 
 function FactionSelect({filterData}: FactionSelectOpts) {
-    const {setFilterState} = useContext(FilterContext);
+    const {setFilterState} = useFilterContext();
     const {armyData, confirmSetArmyFaction, ConfirmModal} = useContext(ArmyContext);
     const [openedPopover, setOpenedPopover] = useState(false);
 

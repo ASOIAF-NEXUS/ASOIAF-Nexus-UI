@@ -1,9 +1,9 @@
-import {BuilderRoles, SongData} from "../../songTypes.ts";
+import {BuilderRoles, SongData} from "../../../utils/songTypes.ts";
 import {useContext, useState} from "react";
-import ArmyContext from "../ArmyContext.ts";
+import ArmyContext from "../../listbuild/ArmyContext.ts";
 import {Button, Flex, Grid, Image, Overlay, ScrollArea, Switch, Table, Text, Tooltip} from "@mantine/core";
-import SongHoverWrapper from "../../components/SongHoverWrapper.tsx";
-import {SortUtil} from "../../utils.ts";
+import SongHoverWrapper from "../../hoverwindows/components/SongHoverWrapper.tsx";
+import {SortUtil} from "../../../utils/utils.ts";
 import {LazyLoadImage, ScrollPosition, trackWindowScroll} from "react-lazy-load-image-component";
 
 

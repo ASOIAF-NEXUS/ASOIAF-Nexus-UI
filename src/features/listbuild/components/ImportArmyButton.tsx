@@ -2,7 +2,7 @@ import {useDisclosure} from "@mantine/hooks";
 import {useContext, useState} from "react";
 import ArmyContext from "../ArmyContext.ts";
 import {Button, Flex, Modal, TextInput} from "@mantine/core";
-import {defaultArmyFormat, defaultArmySize, FACTIONS} from "../../songTypes.ts";
+import {defaultArmyFormat, defaultArmySize, FACTIONS} from "../../../utils/songTypes.ts";
 
 
 function ImportArmyButton() {

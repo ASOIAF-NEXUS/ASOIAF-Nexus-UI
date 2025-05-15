@@ -1,4 +1,4 @@
-import {createContext} from "react";
+import {createContext, useContext} from "react";
 import {T_FilterState, T_setFilterState} from "./filter.tsx";
 
 
@@ -8,5 +8,6 @@ interface FilterContextVal {
 }
 
 const FilterContext = createContext({} as FilterContextVal);
+const useFilterContext = () => useContext(FilterContext);
 
-export default FilterContext;
+export {FilterContext, useFilterContext};

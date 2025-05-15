@@ -1,6 +1,6 @@
 import {ReactNode, useState} from "react";
 import {T_FilterState} from "../filter.tsx";
-import FilterContext from "../FilterContext.ts";
+import {FilterContext} from "../FilterContext.ts";
 
 interface FilterContextProviderProps {
     children: ReactNode

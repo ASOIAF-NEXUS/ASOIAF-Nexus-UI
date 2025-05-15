@@ -1,19 +1,21 @@
-import {Dictionary, SortUtil} from "../utils.ts";
-import {BuilderRoles, FACTIONS, FilterCharCmdr, SongData} from "../songTypes.ts";
+import {Dictionary, SortUtil} from "../../utils/utils.ts";
+import {BuilderRoles, FACTIONS, FilterCharCmdr, SongData} from "../../utils/songTypes.ts";
 import {
     Button,
     ButtonGroup,
     Combobox,
     Divider,
-    Flex, Image,
-    Input, InputBase,
+    Flex,
+    Image,
+    Input,
+    InputBase,
     PillGroup,
     Text,
     useCombobox
 } from "@mantine/core";
 import * as React from "react";
 import {useState} from "react";
-import {ArmyValidator} from "./ArmyValidator.ts";
+import {ArmyValidator} from "../listbuild/ArmyValidator.ts";
 
 
 type T_FilterItemValue = string | number;
@@ -42,7 +44,7 @@ interface FilterBaseOpts {
     allowedStates?: number[]
 }
 
-export abstract class FilterBase {
+abstract class FilterBase {
     protected readonly _header: string
     protected readonly _hash: string
     protected readonly _states: number[];
@@ -106,7 +108,7 @@ interface FilterOpts<EntityType> {
     permanentPillFn?: (fi: FilterItem) => boolean
 }
 
-export class Filter<EntityType> extends FilterBase {
+class Filter<EntityType> extends FilterBase {
     protected _items: FilterItem[];
     protected _itemsSet: Set<string>;
     protected readonly _getDefaultFilterState: (fi: FilterItem) => number
@@ -362,7 +364,7 @@ interface MultiFilterOpts {
     header: string
 }
 
-export class MultiFilter extends FilterBase {
+class MultiFilter extends FilterBase {
     private readonly _filters: FilterBase[];
 
     constructor({header, filters}: MultiFilterOpts) {
@@ -450,7 +452,7 @@ interface SearchableFilterOps<EntityType> {
     displayPillFn?: (fi: FilterItem, fs: T_FilterState) => boolean
 }
 
-export class SearchableFilter<EntityType> extends Filter<EntityType> {
+class SearchableFilter<EntityType> extends Filter<EntityType> {
     constructor({
                     header,
                     getFilterValues,

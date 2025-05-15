@@ -1,4 +1,4 @@
-import rawSongData from "./data/song.json"
+import rawSongData from "../data/song.json"
 import {BuilderRoles, FilterCharCmdr, SongData} from "./songTypes.ts";
 import "./utils.ts"
 

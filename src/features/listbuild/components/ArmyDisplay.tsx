@@ -1,10 +1,10 @@
-import {BuilderRoles, SongData} from "../../songTypes.ts";
+import {BuilderRoles, SongData} from "../../../utils/songTypes.ts";
 import {Button, Flex, ScrollArea, Stack, Text} from "@mantine/core";
 import {useContext} from "react";
-import FilterContext from "../FilterContext.ts";
-import {FilterSongData} from "../filter.tsx";
 import ArmyContext from "../ArmyContext.ts";
-import SongHoverWrapper from "../../components/SongHoverWrapper.tsx";
+import SongHoverWrapper from "../../hoverwindows/components/SongHoverWrapper.tsx";
+import {useFilterContext} from "../../filter/FilterContext.ts";
+import {FilterSongData} from "../../filter/filter.tsx";
 
 
 function UnitCard({songObj, onClickDelete}: { songObj: SongData, onClickDelete: () => void }) {
@@ -53,7 +53,7 @@ interface ArmyDisplayProps {
 }
 
 function ArmyDisplay({filterData}: ArmyDisplayProps) {
-    const {setFilterState} = useContext(FilterContext);
+    const {setFilterState} = useFilterContext();
     const {armyData, slot, setSlot, deleteFromArmy, armyValidator, allowIllegal} = useContext(ArmyContext);
 
     const setFilterAndSlot = (newVal: string, newSlot: number) => {

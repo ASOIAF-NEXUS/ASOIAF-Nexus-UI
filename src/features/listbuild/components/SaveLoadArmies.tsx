@@ -1,12 +1,12 @@
 import {Button, Flex, Image, Modal, Table, Text, TextInput} from "@mantine/core";
 import {ArmyStorageLocalstorage, SavableArmyData} from "../armyStorage.ts";
+import * as React from "react";
 import {useContext, useState} from "react";
 import {useDisclosure, useForceUpdate} from "@mantine/hooks";
 import ArmyContext from "../ArmyContext.ts";
-import {Dictionary} from "../../utils.ts";
-import * as React from "react";
-import {armyIdsToArmyData, SongData} from "../../songTypes.ts";
-import SongHoverWrapper from "../../components/SongHoverWrapper.tsx";
+import {Dictionary} from "../../../utils/utils.ts";
+import {armyIdsToArmyData, SongData} from "../../../utils/songTypes.ts";
+import SongHoverWrapper from "../../hoverwindows/components/SongHoverWrapper.tsx";
 import ExportArmyButton from "./ExportArmyButton.tsx";
 
 

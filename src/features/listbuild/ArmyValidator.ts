@@ -8,8 +8,8 @@ import {
     FACTIONS,
     iterateArmyData,
     SongData
-} from "../songTypes.ts";
-import {Dictionary} from "../utils.ts";
+} from "../../utils/songTypes.ts";
+import {Dictionary} from "../../utils/utils.ts";
 
 interface ArmyPointPool {
     max: number

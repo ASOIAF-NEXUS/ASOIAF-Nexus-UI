@@ -1,5 +1,5 @@
 import {Button, Menu} from "@mantine/core";
-import {ArmyListData, armyToString, armyToTTS} from "../../songTypes.ts";
+import {ArmyListData, armyToString, armyToTTS} from "../../../utils/songTypes.ts";
 import {useContext} from "react";
 import ArmyContext from "../ArmyContext.ts";
 import {useClipboard} from "@mantine/hooks";

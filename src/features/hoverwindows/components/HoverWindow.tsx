@@ -1,18 +1,10 @@
 import * as React from "react";
-import {
-    Attributes,
-    cloneElement,
-    CSSProperties,
-    useContext,
-    useEffect,
-    useRef,
-    useState
-} from "react";
+import {Attributes, cloneElement, CSSProperties, useContext, useEffect, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 import {Button, Flex, Image, ScrollArea} from "@mantine/core";
-import useMouseDrag from "../hooks/useMouseDrag.ts";
-import "./hover.css"
-import {clamp} from "../utils.ts";
+import useMouseDrag from "../../../hooks/useMouseDrag.ts";
+import "../hover.css"
+import {clamp} from "../../../utils/utils.ts";
 import {useId, useViewportSize} from "@mantine/hooks";
 import HoverContext from "../HoverContext.ts";
 

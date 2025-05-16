@@ -1,6 +1,6 @@
-import { Paper, Title, Text, Stack, Group, List, Anchor } from "@mantine/core";
+import {Anchor, Group, List, Paper, Stack, Text, Title} from "@mantine/core";
 
-function HomePage() {
+function Home() {
   return (
     <Stack>
       <Paper shadow="md" radius="sm" p="xl" withBorder><Title>Home Page</Title></Paper>
@@ -36,10 +36,10 @@ function HomePage() {
         </Paper>
       <Group justify="space-between">
         <Paper shadow="xs" radius="md" p="xl" withBorder>Did you know this project is open source?</Paper>
-        <Paper shadow="xs" radius="md" p="xl" withBorder>Did you know this project is done by volonteers?</Paper>
+        <Paper shadow="xs" radius="md" p="xl" withBorder>Did you know this project is done by volunteers?</Paper>
       </Group>
     </Stack>
   );
 }
 
-export default HomePage;
+export default Home;

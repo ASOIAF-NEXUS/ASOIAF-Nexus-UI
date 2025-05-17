@@ -1,21 +1,23 @@
 import {AuthForm} from "../features/auth/components/AuthForms.tsx";
 import {useAuth} from "../features/auth/AuthContext.ts";
 import {Login} from "../features/auth/authTypes.ts";
-import {NavigationState} from "../features/nav/navTypes.ts";
+import {useNavigate} from "react-router";
+import PageTitle from "../features/nav/Components/PageTitle.tsx";
 
 
-interface SignUpProps {
-    setNavigationState: (ns: NavigationState) => void
-}
-
-export default function SignUp({setNavigationState}: SignUpProps) {
+export default function SignUp() {
     const {doSignUp} = useAuth();
+    const navigate = useNavigate();
+
     const action = async (login: Login) => {
         await doSignUp({
             login,
-            callbackSuccess: () => setNavigationState("home"),
+            callbackSuccess: () => navigate("home", {replace: true}),
         });
     }
 
-    return <AuthForm type="sign-up" action={action}/>
+    return <>
+        <PageTitle title="Sign Up"/>
+        <AuthForm type="sign-up" action={action}/>
+    </>
 }

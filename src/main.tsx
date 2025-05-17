@@ -8,15 +8,18 @@ import {Notifications} from "@mantine/notifications";
 import "@mantine/core/styles.css";
 import '@mantine/notifications/styles.css';
 import AuthProvider from "./features/auth/components/AuthProvider.tsx";
+import {BrowserRouter} from "react-router";
 
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <MantineProvider theme={theme}>
-      <Notifications />
-        <AuthProvider>
-            <App />
-        </AuthProvider>
-    </MantineProvider>
-  </StrictMode>
+    <StrictMode>
+        <MantineProvider theme={theme}>
+            <BrowserRouter>
+                <Notifications/>
+                <AuthProvider>
+                    <App/>
+                </AuthProvider>
+            </BrowserRouter>
+        </MantineProvider>
+    </StrictMode>
 );
